@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>대시보드 - AEROC Admin</title>
+    <link rel="icon" href="/favicon.png" type="image/png">
     <script>
       (function() {
         const theme = localStorage.getItem('AEROC-theme') || 'light';
@@ -19,7 +20,7 @@
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="sidebar-logo">
-                    <img src="/assets/aeroc.png" alt="AEROC" class="logo-img">
+                    <img src="/dashboard/aeroc.png" alt="AEROC" class="logo-img">
                 </div>
                 <button class="sidebar-toggle" id="sidebarClose" aria-label="메뉴 닫기">
                     <i class='bx bx-x'></i>
@@ -108,6 +109,54 @@
                             </table>
                         </div>
                     </div>
+                    <div class="period-contracts-card">
+                        <h4>기간별 계약건</h4>
+                        <div class="period-selector">
+                            <select id="periodYear">
+                                <!-- JS에서 채움 -->
+                            </select>
+                            <span class="period-label">년</span>
+                            <select id="periodMonth">
+                                <option value="1">1월</option>
+                                <option value="2">2월</option>
+                                <option value="3">3월</option>
+                                <option value="4">4월</option>
+                                <option value="5">5월</option>
+                                <option value="6">6월</option>
+                                <option value="7">7월</option>
+                                <option value="8">8월</option>
+                                <option value="9">9월</option>
+                                <option value="10">10월</option>
+                                <option value="11">11월</option>
+                                <option value="12">12월</option>
+                            </select>
+                            <button type="button" class="btn-primary btn-period" id="loadPeriodBtn">조회</button>
+                        </div>
+                        <div class="ranking-banner" id="rankingBanner">
+                            <div class="ranking-placeholder" id="rankingPlaceholder">연·월을 선택하고 조회를 누르세요.</div>
+                            <div class="ranking-content" id="rankingContent" style="display: none;">
+                                <span class="ranking-badge">1등</span>
+                                <span class="ranking-name" id="rankingName">-</span>
+                                <span class="ranking-amount" id="rankingAmount">총 0원</span>
+                                <span class="ranking-count" id="rankingCount">0건</span>
+                            </div>
+                        </div>
+                        <div class="period-contracts-table-wrap">
+                            <table class="contracts-table">
+                                <thead>
+                                    <tr>
+                                        <th>업체명</th>
+                                        <th>담당자</th>
+                                        <th>금액</th>
+                                        <th>계약일</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="periodContractsListBody">
+                                    <tr class="empty-row"><td colspan="4">연·월을 선택하고 조회를 누르세요.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
                 <div class="page-placeholder" id="pagePlaceholder" style="display: none;">
                     <p>준비 중인 페이지입니다.</p>
@@ -173,25 +222,22 @@
                                     <table class="project-table">
                                         <thead>
                                             <tr>
-                                                <th class="col-check"><input type="checkbox" id="selectAll" title="전체 선택"></th>
-                                                <th class="col-num">번호</th>
                                                 <th>업체명</th>
-                                                <th>대표이름</th>
-                                                <th>대표 전화번호</th>
                                                 <th>담당자</th>
+                                                <th>개발자</th>
+                                                <th>홈페이지 URL</th>
                                                 <th>유형</th>
                                                 <th>계약기간</th>
                                                 <th>금액</th>
                                                 <th>급 제작건</th>
                                                 <th>상태</th>
                                                 <th>등록일</th>
-                                                <th>수정일</th>
                                                 <th class="col-action"></th>
                                             </tr>
                                         </thead>
                                         <tbody id="projectListBody">
                                             <tr class="empty-row" id="projectEmptyRow">
-                                                <td colspan="14">등록된 프로젝트가 없습니다.</td>
+                                                <td colspan="11">등록된 프로젝트가 없습니다.</td>
                                             </tr>
                                         </tbody>
                                     </table>

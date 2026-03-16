@@ -36,6 +36,7 @@ router.get('/', authMiddleware, async (req, res) => {
       SELECT u.id, u.username, u.email, u.name, u.phone, u.role, u.team_leader_id, t.username as team_leader_name
       FROM users u
       LEFT JOIN users t ON u.team_leader_id = t.id
+      WHERE u.role != 'admin'
       ORDER BY u.role DESC, u.username
     `).all();
     const { results: teamLeaders } = await req.db.prepare('SELECT id, username FROM users WHERE role = ?').bind('team_leader').all();

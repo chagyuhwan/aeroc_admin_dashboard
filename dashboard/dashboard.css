@@ -66,9 +66,13 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px 24px;
+  padding: 12px 20px 24px;
   border-bottom: 1px solid var(--border);
   margin-bottom: 20px;
+  gap: 12px;
+  overflow: visible;
+  min-height: 56px;
+  flex-shrink: 0;
 }
 
 .sidebar-toggle {
@@ -79,13 +83,27 @@ body {
   color: var(--text-secondary);
   cursor: pointer;
   padding: 4px;
+  flex-shrink: 0;
+}
+
+.sidebar-logo {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  overflow: visible;
 }
 
 .sidebar-logo .logo-img {
   max-width: 100%;
-  height: auto;
   max-height: 40px;
+  width: auto;
+  height: auto;
   object-fit: contain;
+  object-position: left center;
+  display: block;
 }
 
 .sidebar-nav {
@@ -445,6 +463,105 @@ body {
   padding: 24px;
 }
 
+/* 기간별 계약건 섹션 */
+.period-contracts-card {
+  margin-top: 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+
+.period-contracts-card h4 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.period-selector {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.period-selector select {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+  background: var(--bg-main);
+  color: var(--text-primary);
+}
+
+.period-selector .period-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.period-selector .btn-period {
+  padding: 10px 20px;
+}
+
+.ranking-banner {
+  background: var(--accent-bg);
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+
+.ranking-placeholder {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.ranking-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ranking-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 28px;
+  padding: 0 8px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 8px;
+}
+
+.ranking-name {
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--text-primary);
+}
+
+.ranking-amount {
+  font-weight: 600;
+  color: var(--accent);
+  font-size: 15px;
+}
+
+.ranking-count {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.period-contracts-table-wrap {
+  overflow-x: auto;
+}
+
 .page-placeholder {
   padding: 60px 20px;
   text-align: center;
@@ -567,35 +684,58 @@ body {
 /* 상태 탭 */
 .status-tabs {
   display: flex;
-  gap: 4px;
+  gap: 8px;
   margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 
-.tab-btn {
-  padding: 10px 16px;
+.tab-btn,
+.tab-btn-dev {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
   border: 1px solid var(--border);
   background: var(--bg-card);
   color: var(--text-secondary);
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 14px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
-.tab-btn:hover {
+.tab-btn:hover,
+.tab-btn-dev:hover {
   color: var(--accent);
   border-color: var(--accent);
+  background: var(--accent-bg);
 }
 
-.tab-btn.active {
+.tab-btn.active,
+.tab-btn-dev.active {
   background: var(--accent);
   color: #fff;
   border-color: var(--accent);
 }
 
+.tab-btn.active .tab-count,
+.tab-btn-dev.active .tab-count {
+  background: rgba(255,255,255,0.25);
+  color: inherit;
+}
+
 .tab-count {
-  margin-left: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  padding: 2px 6px;
+  margin-left: 2px;
   font-weight: 600;
+  font-size: 13px;
+  border-radius: 6px;
+  background: var(--accent-bg);
+  color: var(--accent);
 }
 
 /* 검색 바 */
@@ -709,12 +849,23 @@ body {
   color: var(--text-primary);
 }
 
-.project-table .col-check { width: 40px; }
-.project-table .col-num { width: 60px; }
 .project-table .col-name { min-width: 80px; }
 .project-table .col-phone { min-width: 110px; }
-.project-table:not(.show-project-num) .col-num { display: none; }
 .project-table .col-action { width: 50px; }
+.project-table .text-muted { color: var(--text-secondary); font-size: 13px; }
+
+.project-table .url-link {
+  color: var(--accent);
+  text-decoration: none;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+}
+.project-table .url-link:hover {
+  text-decoration: underline;
+}
 
 .project-table tbody tr:hover {
   background: var(--accent-bg);

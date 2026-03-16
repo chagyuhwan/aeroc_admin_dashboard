@@ -311,6 +311,85 @@ async function loadContracts() {
   }
 }
 
+// 기간별 계약건·랭킹 초기화
+(function initPeriodSelector() {
+  const yearSelect = document.getElementById('periodYear');
+  const monthSelect = document.getElementById('periodMonth');
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  for (let y = currentYear - 2; y <= currentYear + 1; y++) {
+    const opt = document.createElement('option');
+    opt.value = y;
+    opt.textContent = y + '년';
+    if (y === currentYear) opt.selected = true;
+    yearSelect.appendChild(opt);
+  }
+  monthSelect.value = String(now.getMonth() + 1);
+})();
+
+async function loadPeriodData() {
+  const year = document.getElementById('periodYear').value;
+  const month = document.getElementById('periodMonth').value;
+  if (!year || !month) return;
+
+  try {
+    const [contractsRes, rankingRes] = await Promise.all([
+      fetch(`/api/contracts?year=${year}&month=${month}`, { headers: { 'Authorization': `Bearer ${token}` } }),
+      fetch(`/api/sales/ranking?year=${year}&month=${month}`, { headers: { 'Authorization': `Bearer ${token}` } })
+    ]);
+
+    const contractsResult = await contractsRes.json();
+    const rankingResult = await rankingRes.json();
+
+    // 랭킹 배너
+    const placeholder = document.getElementById('rankingPlaceholder');
+    const content = document.getElementById('rankingContent');
+    const rankName = document.getElementById('rankingName');
+    const rankAmount = document.getElementById('rankingAmount');
+    const rankCount = document.getElementById('rankingCount');
+
+    if (rankingResult.success && rankingResult.ranking && rankingResult.ranking.length > 0) {
+      const first = rankingResult.ranking[0];
+      placeholder.style.display = 'none';
+      content.style.display = 'flex';
+      rankName.textContent = first.manager_name || first.manager || '-';
+      rankAmount.textContent = '총 ' + (first.total || 0).toLocaleString() + '원';
+      rankCount.textContent = (first.cnt || 0) + '건';
+    } else {
+      placeholder.style.display = 'block';
+      content.style.display = 'none';
+      placeholder.textContent = `${year}년 ${month}월 계약이 없습니다.`;
+    }
+
+    // 계약건 테이블
+    const tbody = document.getElementById('periodContractsListBody');
+    if (!contractsResult.success || !contractsResult.contracts || contractsResult.contracts.length === 0) {
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="4">${year}년 ${month}월 계약이 없습니다.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = contractsResult.contracts.map(c => {
+      const displayName = c.manager_name || c.manager || '-';
+      const dateStr = c.created_at ? new Date(c.created_at).toLocaleDateString('ko-KR') : '-';
+      const priceStr = (c.price != null && c.price > 0) ? c.price.toLocaleString() + '원' : '-';
+      return `<tr>
+        <td>${escapeHtml(c.company_name || '-')}</td>
+        <td>${escapeHtml(displayName)}</td>
+        <td>${priceStr}</td>
+        <td>${dateStr}</td>
+      </tr>`;
+    }).join('');
+  } catch (err) {
+    console.error('기간별 데이터 로드 실패:', err);
+    document.getElementById('periodContractsListBody').innerHTML = '<tr class="empty-row"><td colspan="4">로드 실패</td></tr>';
+    document.getElementById('rankingPlaceholder').textContent = '로드 실패';
+    document.getElementById('rankingPlaceholder').style.display = 'block';
+    document.getElementById('rankingContent').style.display = 'none';
+  }
+}
+
+document.getElementById('loadPeriodBtn').addEventListener('click', loadPeriodData);
+
 function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str;
@@ -336,11 +415,6 @@ async function loadProjects() {
     const result = await res.json();
     if (!result.success) throw new Error(result.message);
 
-    const projectTable = document.querySelector('.project-table');
-    if (projectTable) {
-      projectTable.classList.toggle('show-project-num', result.isAdmin === true);
-    }
-
     // 탭 카운트 업데이트
     document.getElementById('countAll').textContent = result.counts?.전체 ?? 0;
     document.getElementById('countProgress').textContent = result.counts?.진행중 ?? 0;
@@ -356,30 +430,34 @@ async function loadProjects() {
       emptyRow.style.display = '';
     } else {
       emptyRow.style.display = 'none';
+      const isAdmin = result.isAdmin === true;
+      const myId = user.id;
       result.projects.forEach(p => {
+        const canModify = isAdmin || (p.created_by != null && String(p.created_by) === String(myId));
         const tr = document.createElement('tr');
         const created = new Date(p.created_at).toLocaleDateString('ko-KR');
-        const updated = p.updated_at ? new Date(p.updated_at).toLocaleDateString('ko-KR') : '-';
         const periodDisplay = p.contract_period === 0 ? '-' : `${p.contract_period}년`;
         const priceDisplay = (p.price != null && p.price > 0) ? p.price.toLocaleString() + '원' : '-';
         const urgentBadge = p.is_urgent ? '<span class="urgent-badge">급 제작건</span>' : '-';
+        const devDisplay = escapeHtml(p.developer || '-');
+        const url = (p.website_url || '').trim();
+        const urlDisplay = url && (url.startsWith('http://') || url.startsWith('https://'))
+          ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="url-link">${escapeHtml(url)}</a>` : (url ? escapeHtml(url) : '-');
+        const actionCell = canModify
+          ? `<button type="button" class="row-action-btn" data-id="${p.id}" title="더보기"><i class='bx bx-dots-vertical-rounded'></i></button>`
+          : '<span class="text-muted">-</span>';
         tr.innerHTML = `
-          <td class="col-check"><input type="checkbox" class="row-check" data-id="${p.id}"></td>
-          <td class="col-num">${p.id}</td>
           <td>${escapeHtml(p.company_name)}</td>
-          <td>${escapeHtml(p.representative_name || '-')}</td>
-          <td>${escapeHtml(p.representative_phone || '-')}</td>
           <td>${escapeHtml(p.manager_name || p.manager || '-')}</td>
+          <td>${devDisplay}</td>
+          <td>${urlDisplay}</td>
           <td>${escapeHtml(p.project_type)}</td>
           <td>${periodDisplay}</td>
           <td>${priceDisplay}</td>
           <td>${urgentBadge}</td>
           <td><span class="status-badge ${p.status || '진행중'}">${p.status || '진행중'}</span></td>
           <td>${created}</td>
-          <td>${updated}</td>
-          <td class="col-action">
-            <button type="button" class="row-action-btn" data-id="${p.id}" title="더보기"><i class='bx bx-dots-vertical-rounded'></i></button>
-          </td>
+          <td class="col-action">${actionCell}</td>
         `;
         tbody.appendChild(tr);
       });
@@ -586,22 +664,17 @@ document.getElementById('excelDownload').addEventListener('click', () => {
   const rows = document.querySelectorAll('#projectListBody tr:not(.empty-row)');
   if (rows.length === 0) { alert('다운로드할 데이터가 없습니다.'); return; }
   let csv = '\uFEFF'; // BOM for Excel
-  csv += '번호,업체명,대표이름,대표 전화번호,담당자,유형,계약기간,금액,급 제작건,상태,등록일,수정일\n';
+  csv += '업체명,담당자,개발자,홈페이지 URL,유형,계약기간,금액,급 제작건,상태,등록일\n';
   rows.forEach(tr => {
     const tds = tr.querySelectorAll('td');
-    if (tds.length >= 13) {
-      csv += `"${tds[1].textContent}","${tds[2].textContent}","${tds[3].textContent}","${tds[4].textContent}","${tds[5].textContent}","${tds[6].textContent}","${tds[7].textContent}","${tds[8].textContent}","${tds[9].textContent}","${tds[10].textContent}","${tds[11].textContent}","${tds[12].textContent}"\n`;
+    if (tds.length >= 10) {
+      csv += `"${tds[0].textContent}","${tds[1].textContent}","${tds[2].textContent}","${tds[3].textContent}","${tds[4].textContent}","${tds[5].textContent}","${tds[6].textContent}","${tds[7].textContent}","${tds[8].textContent}","${tds[9].textContent}"\n`;
     }
   });
   const a = document.createElement('a');
   a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
   a.download = `프로젝트_${new Date().toISOString().slice(0,10)}.csv`;
   a.click();
-});
-
-// 전체 선택
-document.getElementById('selectAll').addEventListener('change', function() {
-  document.querySelectorAll('.row-check').forEach(cb => cb.checked = this.checked);
 });
 
 document.getElementById('projectForm').addEventListener('submit', async (e) => {

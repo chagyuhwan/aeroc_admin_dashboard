@@ -6,13 +6,10 @@ const PROJECT_TYPES = ['기본형', '고급형', '최고급형'];
 const CONTRACT_PERIODS = [3, 5];
 const STATUSES = ['진행중', '완료됨', '대기중'];
 
-async function getViewableUserIds(db, user) {
-  if (user.role === 'admin') return null;
-  if (user.role === 'team_leader') {
-    const { results } = await db.prepare('SELECT id FROM users WHERE team_leader_id = ?').bind(user.id).all();
-    return [user.id, ...results.map(m => m.id)];
-  }
-  return [user.id];
+// 관리자: 모든 프로젝트 수정/삭제 가능. 일반 사용자: 본인이 등록한 계약만 수정/삭제 가능
+function canModifyProject(user, createdBy) {
+  if (user.role === 'admin') return true;
+  return createdBy === user.id;
 }
 
 router.get('/', authMiddleware, async (req, res) => {
@@ -22,7 +19,7 @@ router.get('/', authMiddleware, async (req, res) => {
     const isAdmin = user.role === 'admin';
     const { status, project_type, contract_period, search } = req.query;
     // All members see all projects (same as sales, contracts)
-    let sql = `SELECT p.id, p.company_name, p.representative_name, p.representative_phone, p.manager, u.name as manager_name, p.project_type, p.contract_period, p.price, p.is_urgent, p.status, p.memo, p.developer, p.website_url, p.created_at, p.updated_at FROM projects p LEFT JOIN users u ON u.username = p.manager WHERE 1=1`;
+    let sql = `SELECT p.id, p.company_name, p.representative_name, p.representative_phone, p.manager, u.name as manager_name, p.project_type, p.contract_period, p.price, p.is_urgent, p.status, p.memo, p.developer, p.website_url, p.created_by, p.created_at, p.updated_at FROM projects p LEFT JOIN users u ON u.username = p.manager WHERE 1=1`;
     const params = [];
 
     if (status && status !== '전체' && STATUSES.includes(status)) {
@@ -152,11 +149,10 @@ router.patch('/:id', authMiddleware, async (req, res) => {
     const db = req.db;
     const { id } = req.params;
     const { status, company_name, representative_name, representative_phone, manager, project_type_option, is_urgent, memo, developer, website_url } = req.body;
-    const viewableIds = await getViewableUserIds(db, req.user);
     const project = await db.prepare('SELECT created_by FROM projects WHERE id = ?').bind(id).first();
     if (!project) return res.status(404).json({ success: false, message: '프로젝트를 찾을 수 없습니다.' });
-    if (viewableIds && !viewableIds.includes(project.created_by)) {
-      return res.status(403).json({ success: false, message: '수정 권한이 없습니다.' });
+    if (!canModifyProject(req.user, project.created_by)) {
+      return res.status(403).json({ success: false, message: '수정 권한이 없습니다. 본인이 등록한 계약만 수정할 수 있습니다.' });
     }
     if (company_name !== undefined && manager !== undefined && project_type_option !== undefined) {
       const parsed = parseProjectTypeOption(project_type_option);
@@ -193,11 +189,10 @@ router.delete('/:id', authMiddleware, async (req, res) => {
   try {
     const db = req.db;
     const { id } = req.params;
-    const viewableIds = await getViewableUserIds(db, req.user);
     const project = await db.prepare('SELECT created_by FROM projects WHERE id = ?').bind(id).first();
     if (!project) return res.status(404).json({ success: false, message: '프로젝트를 찾을 수 없습니다.' });
-    if (viewableIds && !viewableIds.includes(project.created_by)) {
-      return res.status(403).json({ success: false, message: '삭제 권한이 없습니다.' });
+    if (!canModifyProject(req.user, project.created_by)) {
+      return res.status(403).json({ success: false, message: '삭제 권한이 없습니다. 본인이 등록한 계약만 삭제할 수 있습니다.' });
     }
     await db.prepare('DELETE FROM projects WHERE id = ?').bind(id).run();
     res.json({ success: true, message: '프로젝트가 삭제되었습니다.' });

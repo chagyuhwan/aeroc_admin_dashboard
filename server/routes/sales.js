@@ -75,4 +75,32 @@ function formatMonthLabel(monthStr) {
   return `${parseInt(month)}월`;
 }
 
+// 기간별 매출 랭킹 (담당자별 총액, 계약건수)
+router.get('/ranking', authMiddleware, async (req, res) => {
+  try {
+    const db = req.db;
+    const { year, month } = req.query;
+    if (!year || !month) {
+      return res.status(400).json({ success: false, message: 'year, month가 필요합니다.' });
+    }
+    const y = String(year).padStart(4, '0');
+    const m = String(month).padStart(2, '0');
+
+    const { results } = await db.prepare(`
+      SELECT p.manager, u.name as manager_name, SUM(p.price) as total, COUNT(*) as cnt
+      FROM projects p
+      LEFT JOIN users u ON u.username = p.manager
+      WHERE p.price > 0 AND strftime('%Y', p.created_at) = ? AND strftime('%m', p.created_at) = ?
+      GROUP BY p.manager
+      ORDER BY total DESC
+      LIMIT 10
+    `).bind(y, m).all();
+
+    res.json({ success: true, ranking: results });
+  } catch (error) {
+    console.error('매출 랭킹 조회 오류:', error);
+    res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
+  }
+});
+
 export default router;

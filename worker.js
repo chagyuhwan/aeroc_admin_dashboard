@@ -44,6 +44,25 @@ app.get(['/dashboard', '/dashboard/', '/dashboard.html'], async (req, res) => {
   res.status(r.status).set(Object.fromEntries(r.headers)).send(buf);
 });
 
+app.get(['/favicon.ico', '/favicon.png'], async (req, res) => {
+  try {
+    const path = req.path === '/favicon.ico' ? '/favicon.png' : '/favicon.png';
+    const url = new URL(path, req.protocol + '://' + req.get('host'));
+    const r = await env.ASSETS.fetch(new Request(url.toString()));
+    if (!r.ok) {
+      res.status(404).end();
+      return;
+    }
+    const buf = Buffer.from(await r.arrayBuffer());
+    res.status(200).set({
+      'Content-Type': 'image/png',
+      'Cache-Control': 'public, max-age=86400',
+    }).send(buf);
+  } catch (e) {
+    res.status(500).end();
+  }
+});
+
 app.get('*', async (req, res) => {
   if (env.ASSETS) {
     const url = new URL(req.url, req.protocol + '://' + req.get('host'));
