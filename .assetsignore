@@ -1,0 +1,11 @@
+node_modules
+.git
+*.md
+data
+*.sqlite3
+.env*
+wrangler.toml
+schemas
+server
+worker.js
+package*.json

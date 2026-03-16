@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>대시보드 - AeroC Admin</title>
+    <script>
+      (function() {
+        const theme = localStorage.getItem('aeroc-theme') || 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+      })();
+    </script>
+    <link rel="stylesheet" href="/dashboard/dashboard.css">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- 사이드바 -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <img src="/assets/aeroc.png" alt="AeroC" class="logo-img">
+                </div>
+                <button class="sidebar-toggle" id="sidebarClose" aria-label="메뉴 닫기">
+                    <i class='bx bx-x'></i>
+                </button>
+            </div>
+            <ul class="sidebar-nav">
+                <li><a href="#dashboard" class="nav-link" data-page="dashboard"><span class="icon"><i class='bx bxs-home'></i></span><span class="label">대시보드 홈</span></a></li>
+                <li><a href="#projects" class="nav-link" data-page="projects"><span class="icon"><i class='bx bxs-folder'></i></span><span class="label">프로젝트 관리</span></a></li>
+                <li><a href="#employees" class="nav-link" data-page="employees"><span class="icon"><i class='bx bxs-user-detail'></i></span><span class="label">직원 관리</span></a></li>
+                <li><a href="#settings" class="nav-link" data-page="settings"><span class="icon"><i class='bx bxs-cog'></i></span><span class="label">설정</span></a></li>
+            </ul>
+        </aside>
+
+        <div class="main-wrapper">
+            <!-- 상단 바 -->
+            <header class="topbar">
+                <button class="sidebar-toggle" id="sidebarOpen" aria-label="메뉴 열기">
+                    <i class='bx bx-menu'></i>
+                </button>
+                <h1 class="page-title" id="pageTitle">대시보드 홈</h1>
+                <div class="topbar-right">
+                    <button class="theme-toggle" id="themeToggle" aria-label="테마 전환">
+                        <i class='bx bx-sun' id="themeIconLight"></i>
+                        <i class='bx bx-moon' id="themeIconDark"></i>
+                    </button>
+                    <div class="notification-wrap">
+                        <button class="icon-btn notification-btn" id="notificationBtn" aria-label="알림">
+                            <i class='bx bx-bell'></i>
+                            <span class="badge" id="notificationBadge">0</span>
+                        </button>
+                    </div>
+                    <div class="user-profile" id="userProfile">
+                        <div class="user-avatar" id="userAvatar">A</div>
+                        <div class="user-details">
+                            <span id="userName">Admin</span>
+                            <small id="userEmail">admin@aeroc.com</small>
+                        </div>
+                        <i class='bx bx-chevron-down profile-arrow'></i>
+                    </div>
+                </div>
+            </header>
+
+            <!-- 프로필 드롭다운 -->
+            <div class="profile-dropdown" id="profileDropdown">
+                <a href="#" class="dropdown-item"><i class='bx bx-user'></i> 프로필</a>
+                <a href="#" class="dropdown-item"><i class='bx bx-cog'></i> 계정 설정</a>
+                <hr>
+                <button class="dropdown-item logout-item" id="logoutBtn"><i class='bx bx-log-out'></i> 로그아웃</button>
+            </div>
+
+            <!-- 메인 콘텐츠 -->
+            <main class="main-content">
+                <div class="charts-grid" id="dashboardContent">
+                    <div class="chart-card">
+                        <h4>일일매출</h4>
+                        <div class="chart-container">
+                            <canvas id="dailySalesChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h4>누적매출</h4>
+                        <div class="chart-container">
+                            <canvas id="cumulativeSalesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="page-placeholder" id="pagePlaceholder" style="display: none;">
+                    <p>준비 중인 페이지입니다.</p>
+                </div>
+
+                <!-- 프로젝트 관리 페이지 -->
+                <div class="projects-page" id="projectsPage" style="display: none;">
+                    <!-- 프로젝트 목록 뷰 -->
+                    <div class="projects-list-view" id="projectsListView">
+                    <div class="projects-layout">
+                        <!-- 좌측 카테고리 사이드바 -->
+                        <aside class="projects-sidebar">
+                            <div class="sidebar-section">
+                                <h4>유형별</h4>
+                                <ul class="filter-list">
+                                    <li><a href="#" class="filter-link type-link active" data-type="">전체 유형</a></li>
+                                    <li><a href="#" class="filter-link type-link" data-type="기본형">기본형</a></li>
+                                    <li><a href="#" class="filter-link type-link" data-type="고급형">고급형</a></li>
+                                    <li><a href="#" class="filter-link type-link" data-type="최고급형">최고급형</a></li>
+                                </ul>
+                            </div>
+                            <div class="sidebar-section">
+                                <h4>계약기간</h4>
+                                <ul class="filter-list">
+                                    <li><a href="#" class="filter-link period-link active" data-period="">전체</a></li>
+                                    <li><a href="#" class="filter-link period-link" data-period="3">3년</a></li>
+                                    <li><a href="#" class="filter-link period-link" data-period="5">5년</a></li>
+                                </ul>
+                            </div>
+                        </aside>
+
+                        <!-- 메인 콘텐츠 -->
+                        <div class="projects-main">
+                            <div class="projects-header">
+                                <h2 class="projects-title">프로젝트</h2>
+                                <button type="button" class="btn-primary" id="openProjectModal">
+                                    <i class='bx bx-plus'></i> 프로젝트 등록
+                                </button>
+                            </div>
+
+                            <div class="status-tabs">
+                                <button type="button" class="tab-btn active" data-status="전체">전체 <span class="tab-count" id="countAll">0</span></button>
+                                <button type="button" class="tab-btn" data-status="진행중">진행중 <span class="tab-count" id="countProgress">0</span></button>
+                                <button type="button" class="tab-btn" data-status="완료됨">완료됨 <span class="tab-count" id="countDone">0</span></button>
+                                <button type="button" class="tab-btn" data-status="대기중">대기중 <span class="tab-count" id="countPending">0</span></button>
+                            </div>
+
+                            <div class="search-bar">
+                                <select class="search-select" id="searchFilter">
+                                    <option value="all">기본</option>
+                                    <option value="company">업체명</option>
+                                    <option value="manager">담당자</option>
+                                </select>
+                                <input type="text" class="search-input" id="searchInput" placeholder="업체명, 대표이름, 담당자, 전화번호를 검색해 보세요.">
+                                <button type="button" class="btn-search" id="searchBtn">검색</button>
+                                <button type="button" class="btn-excel" id="excelDownload">
+                                    <i class='bx bx-download'></i> 엑셀 다운로드
+                                </button>
+                            </div>
+
+                            <div class="table-card">
+                                <div class="project-table-wrap">
+                                    <table class="project-table">
+                                        <thead>
+                                            <tr>
+                                                <th class="col-check"><input type="checkbox" id="selectAll" title="전체 선택"></th>
+                                                <th class="col-num">번호</th>
+                                                <th>업체명</th>
+                                                <th>대표이름</th>
+                                                <th>대표 전화번호</th>
+                                                <th>담당자</th>
+                                                <th>유형</th>
+                                                <th>계약기간</th>
+                                                <th>금액</th>
+                                                <th>급 제작건</th>
+                                                <th>상태</th>
+                                                <th>등록일</th>
+                                                <th>수정일</th>
+                                                <th class="col-action"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="projectListBody">
+                                            <tr class="empty-row" id="projectEmptyRow">
+                                                <td colspan="14">등록된 프로젝트가 없습니다.</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+
+                    <!-- 프로젝트 등록/편집 뷰 (풀페이지) -->
+                    <div class="project-form-view" id="projectFormView" style="display: none;">
+                        <div class="form-view-header">
+                            <h2 class="form-view-title">편집 및 추가</h2>
+                            <div class="form-view-actions">
+                                <button type="button" class="btn-cancel" id="cancelProjectForm">취소</button>
+                                <button type="submit" form="projectForm" class="btn-save">
+                                    <i class='bx bx-save'></i> 저장
+                                </button>
+                            </div>
+                        </div>
+                        <form id="projectForm">
+                        <div class="form-view-content">
+                            <div class="form-main">
+                                    <div class="form-section">
+                                        <h4>기본 정보</h4>
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label for="companyName">업체명</label>
+                                                <input type="text" id="companyName" name="company_name" placeholder="업체명을 입력하세요" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="representativeName">대표이름</label>
+                                                <input type="text" id="representativeName" name="representative_name" placeholder="대표이름을 입력하세요">
+                                            </div>
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label for="representativePhone">대표 전화번호</label>
+                                                <input type="text" id="representativePhone" name="representative_phone" placeholder="010-0000-0000" inputmode="tel" maxlength="14">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="manager">담당자</label>
+                                                <input type="text" id="manager" name="manager" readonly placeholder="로그인한 계정으로 자동 입력">
+                                            </div>
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="form-group form-group-full">
+                                                <label for="projectType">프로젝트 유형</label>
+                                                <select id="projectType" name="project_type_option" required>
+                                                    <option value="">선택하세요</option>
+                                                    <optgroup label="기본형">
+                                                        <option value="기본형_3">기본형 / 3년 / 1,980,000</option>
+                                                        <option value="기본형_5">기본형 / 5년 / 2,640,000</option>
+                                                    </optgroup>
+                                                    <optgroup label="고급형">
+                                                        <option value="고급형_3">고급형 / 3년 / 2,376,000</option>
+                                                        <option value="고급형_5">고급형 / 5년 / 3,300,000</option>
+                                                    </optgroup>
+                                                    <optgroup label="최고급형">
+                                                        <option value="최고급형">최고급형</option>
+                                                    </optgroup>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-section">
+                                        <h4>상세 설명</h4>
+                                        <div class="form-group">
+                                            <label for="projectMemo">메모</label>
+                                            <textarea id="projectMemo" name="memo" rows="5" placeholder="프로젝트에 대한 추가 메모를 입력하세요."></textarea>
+                                        </div>
+                                    </div>
+                            </div>
+                            <aside class="form-sidebar">
+                                <div class="form-sidebar-section">
+                                    <h4>분류</h4>
+                                    <div class="form-group">
+                                        <label>상태</label>
+                                        <select name="status" id="projectStatus">
+                                            <option value="진행중">진행중</option>
+                                            <option value="완료됨">완료됨</option>
+                                            <option value="대기중">대기중</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-sidebar-section">
+                                    <h4>추가 옵션</h4>
+                                    <div class="form-group">
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" name="is_urgent" id="isUrgent" value="1">
+                                            <span>급 제작건</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </aside>
+                        </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 직원 관리 페이지 -->
+                <div class="settings-page" id="employeesPage" style="display: none;">
+                    <div class="settings-content">
+                        <h2 class="settings-title">직원 관리</h2>
+                        <div id="employeesSection" style="display: none;">
+                            <p class="settings-desc">직원 목록 및 팀장 배정을 관리합니다. 팀장에게 팀원을 배정하면 해당 팀장은 팀원의 프로젝트와 매출을 조회할 수 있습니다.</p>
+                            <div class="table-card" style="margin-top: 1rem;">
+                                <div class="project-table-wrap">
+                                <table class="project-table">
+                                    <thead>
+                                        <tr>
+                                            <th>이름</th>
+                                            <th>아이디</th>
+                                            <th>비밀번호</th>
+                                            <th>이메일</th>
+                                            <th>전화번호</th>
+                                            <th>역할</th>
+                                            <th>소속 팀장</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="employeesTableBody"></tbody>
+                                </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="employeesPlaceholder" style="display: none;">
+                            <p>관리자만 접근할 수 있습니다.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 설정 페이지 -->
+                <div class="settings-page" id="settingsPage" style="display: none;">
+                    <div class="settings-content" id="settingsContent">
+                        <h2 class="settings-title">설정</h2>
+                        <div id="myNameSection" class="settings-section">
+                            <h4>내 정보</h4>
+                            <p class="settings-desc">프로젝트 담당자로 표시될 이름과 연락처를 설정합니다.</p>
+                            <div class="form-row" style="margin-top: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+                                <div>
+                                    <label style="font-size: 12px; color: var(--text-secondary);">이름</label>
+                                    <input type="text" id="myNameInput" class="name-input" placeholder="이름" style="max-width: 150px; display: block;">
+                                </div>
+                                <div>
+                                    <label style="font-size: 12px; color: var(--text-secondary);">전화번호</label>
+                                    <input type="tel" id="myPhoneInput" class="name-input" placeholder="010-0000-0000" maxlength="14" style="max-width: 150px; display: block;">
+                                </div>
+                                <button type="button" class="btn-primary" id="saveMyNameBtn" style="align-self: flex-end;">저장</button>
+                            </div>
+                        </div>
+                        <div id="settingsPlaceholder" style="display: none;">
+                            <p>준비 중인 페이지입니다.</p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/dashboard/dashboard.js"></script>
+</body>
+</html>
