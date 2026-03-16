@@ -6,7 +6,7 @@ if (!token || !user.username) {
 }
 
 // 테마 (다크/라이트)
-const themeKey = 'aeroc-theme';
+const themeKey = 'AEROC-theme';
 const savedTheme = localStorage.getItem(themeKey) || 'light';
 document.documentElement.setAttribute('data-theme', savedTheme);
 
@@ -54,6 +54,10 @@ function updateChartColors() {
     if (window.dailySalesChart) {
       dailySalesChart.options.scales.y.grid.color = colors.grid;
       dailySalesChart.update();
+    }
+    if (window.monthlySalesChart) {
+      monthlySalesChart.options.scales.y.grid.color = colors.grid;
+      monthlySalesChart.update();
     }
     if (window.cumulativeSalesChart) {
       cumulativeSalesChart.options.scales.y.grid.color = colors.grid;
@@ -113,8 +117,9 @@ function showPage(pageName) {
   if (employeesPage) employeesPage.style.display = 'none';
 
   if (pageName === 'dashboard') {
-    dashboardContent.style.display = 'grid';
+    dashboardContent.style.display = 'block';
     loadSalesData();
+    loadContracts();
   } else if (pageName === 'projects') {
     projectsPage.style.display = 'block';
     projectsListView.style.display = 'block';
@@ -184,7 +189,31 @@ window.dailySalesChart = new Chart(dailyCtx, {
   data: {
     labels: [],
     datasets: [{
-      label: '일일매출 (만원)',
+      label: '일일금액 (만원)',
+      data: [],
+      backgroundColor: 'rgba(228, 96, 51, 0.6)',
+      borderColor: '#e46033',
+      borderWidth: 1
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { beginAtZero: true, grid: { color: colors.grid } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+const monthlyCtx = document.getElementById('monthlySalesChart').getContext('2d');
+window.monthlySalesChart = new Chart(monthlyCtx, {
+  type: 'bar',
+  data: {
+    labels: [],
+    datasets: [{
+      label: '이번달 금액 (만원)',
       data: [],
       backgroundColor: 'rgba(228, 96, 51, 0.6)',
       borderColor: '#e46033',
@@ -208,7 +237,7 @@ window.cumulativeSalesChart = new Chart(cumulativeCtx, {
   data: {
     labels: [],
     datasets: [{
-      label: '누적매출 (만원)',
+      label: '누적금액 (만원)',
       data: [],
       borderColor: '#e46033',
       backgroundColor: 'rgba(228, 96, 51, 0.1)',
@@ -236,22 +265,61 @@ async function loadSalesData() {
     const result = await res.json();
     if (!result.success) throw new Error(result.message || '조회 실패');
 
-    const label = result.isAdmin ? '전체 매출 (만원)' : (result.isTeamLeader ? '팀 매출 (만원)' : '내 매출 (만원)');
-
-    document.querySelectorAll('.chart-card h4')[0].textContent = result.isAdmin ? '일일매출 (전체)' : (result.isTeamLeader ? '일일매출 (팀)' : '일일매출');
+    document.querySelectorAll('.chart-card h4')[0].textContent = '일일금액';
     dailySalesChart.data.labels = result.daily.labels;
     dailySalesChart.data.datasets[0].data = result.daily.data;
-    dailySalesChart.data.datasets[0].label = label;
+    dailySalesChart.data.datasets[0].label = '만원';
     dailySalesChart.update();
 
-    document.querySelectorAll('.chart-card h4')[1].textContent = result.isAdmin ? '누적매출 (전체)' : (result.isTeamLeader ? '누적매출 (팀)' : '누적매출');
+    document.querySelectorAll('.chart-card h4')[1].textContent = '이번달 금액';
+    monthlySalesChart.data.labels = result.monthly?.labels || [];
+    monthlySalesChart.data.datasets[0].data = result.monthly?.data || [];
+    monthlySalesChart.data.datasets[0].label = '만원';
+    monthlySalesChart.update();
+
+    document.querySelectorAll('.chart-card h4')[2].textContent = '누적금액';
     cumulativeSalesChart.data.labels = result.cumulative.labels;
     cumulativeSalesChart.data.datasets[0].data = result.cumulative.data;
-    cumulativeSalesChart.data.datasets[0].label = label;
+    cumulativeSalesChart.data.datasets[0].label = '만원';
     cumulativeSalesChart.update();
   } catch (err) {
     console.error('매출 데이터 로드 실패:', err);
   }
+}
+
+async function loadContracts() {
+  try {
+    const res = await fetch('/api/contracts', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const result = await res.json();
+    if (!result.success) throw new Error(result.message || '조회 실패');
+
+    const tbody = document.getElementById('contractsListBody');
+    if (!result.contracts || result.contracts.length === 0) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="3">등록된 계약이 없습니다.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = result.contracts.map(c => {
+      const displayName = c.manager_name || c.manager || '-';
+      const dateStr = c.created_at ? new Date(c.created_at).toLocaleDateString('ko-KR') : '-';
+      return `<tr>
+        <td>${escapeHtml(c.company_name || '-')}</td>
+        <td>${escapeHtml(displayName)}</td>
+        <td>${dateStr}</td>
+      </tr>`;
+    }).join('');
+  } catch (err) {
+    console.error('계약건 로드 실패:', err);
+    document.getElementById('contractsListBody').innerHTML = '<tr class="empty-row"><td colspan="3">로드 실패</td></tr>';
+  }
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
 }
 
 loadSalesData();

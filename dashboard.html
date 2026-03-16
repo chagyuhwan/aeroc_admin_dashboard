@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>대시보드 - AeroC Admin</title>
+    <title>대시보드 - AEROC Admin</title>
     <script>
       (function() {
-        const theme = localStorage.getItem('aeroc-theme') || 'light';
+        const theme = localStorage.getItem('AEROC-theme') || 'light';
         document.documentElement.setAttribute('data-theme', theme);
       })();
     </script>
@@ -19,7 +19,7 @@
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="sidebar-logo">
-                    <img src="/assets/aeroc.png" alt="AeroC" class="logo-img">
+                    <img src="/assets/aeroc.png" alt="AEROC" class="logo-img">
                 </div>
                 <button class="sidebar-toggle" id="sidebarClose" aria-label="메뉴 닫기">
                     <i class='bx bx-x'></i>
@@ -54,8 +54,8 @@
                     <div class="user-profile" id="userProfile">
                         <div class="user-avatar" id="userAvatar">A</div>
                         <div class="user-details">
-                            <span id="userName">Admin</span>
-                            <small id="userEmail">admin@aeroc.com</small>
+                            <span id="userName">-</span>
+                            <small id="userEmail">-</small>
                         </div>
                         <i class='bx bx-chevron-down profile-arrow'></i>
                     </div>
@@ -72,17 +72,42 @@
 
             <!-- 메인 콘텐츠 -->
             <main class="main-content">
-                <div class="charts-grid" id="dashboardContent">
-                    <div class="chart-card">
-                        <h4>일일매출</h4>
-                        <div class="chart-container">
-                            <canvas id="dailySalesChart"></canvas>
+                <div class="dashboard-home" id="dashboardContent">
+                    <div class="charts-grid">
+                        <div class="chart-card">
+                            <h4>일일금액</h4>
+                            <div class="chart-container">
+                                <canvas id="dailySalesChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <h4>이번달 금액</h4>
+                            <div class="chart-container">
+                                <canvas id="monthlySalesChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <h4>누적금액</h4>
+                            <div class="chart-container">
+                                <canvas id="cumulativeSalesChart"></canvas>
+                            </div>
                         </div>
                     </div>
-                    <div class="chart-card">
-                        <h4>누적매출</h4>
-                        <div class="chart-container">
-                            <canvas id="cumulativeSalesChart"></canvas>
+                    <div class="contracts-card">
+                        <h4>최근 계약건</h4>
+                        <div class="contracts-table-wrap">
+                            <table class="contracts-table">
+                                <thead>
+                                    <tr>
+                                        <th>업체명</th>
+                                        <th>담당자</th>
+                                        <th>계약일</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="contractsListBody">
+                                    <tr class="empty-row"><td colspan="3">등록된 계약이 없습니다.</td></tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>

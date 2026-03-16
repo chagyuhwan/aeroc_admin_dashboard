@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'aeroc-admin-secret-key-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET || 'AEROC-admin-secret-key-change-in-production';
 
 router.post('/register', async (req, res) => {
   try {

@@ -1,4 +1,4 @@
-# AeroC Admin Dashboard
+# AEROC Admin Dashboard
 
 Company admin dashboard (Node.js + Express + D1/SQLite)
 
@@ -10,7 +10,6 @@ npm start
 ```
 
 - Login: http://localhost:3000/login
-- Default account: `admin` / `admin123`
 
 ## Cloudflare Workers Deployment
 
@@ -30,9 +29,6 @@ npm run deploy
 ```bash
 # Apply schema
 npm run db:schema
-
-# Seed admin account
-npm run db:seed
 ```
 
 ### Deployed URL

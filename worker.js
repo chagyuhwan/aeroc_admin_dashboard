@@ -9,6 +9,7 @@ import authRoutes from './server/routes/auth.js';
 import salesRoutes from './server/routes/sales.js';
 import projectsRoutes from './server/routes/projects.js';
 import usersRoutes from './server/routes/users.js';
+import contractsRoutes from './server/routes/contracts.js';
 
 const app = express();
 app.use((req, res, next) => {
@@ -23,6 +24,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/sales', salesRoutes);
 app.use('/api/projects', projectsRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/contracts', contractsRoutes);
 
 app.get(['/', '/index.html'], (req, res) => {
   res.redirect(302, '/login/');

@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'aeroc-admin-secret-key-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET || 'AEROC-admin-secret-key-change-in-production';
 
 export async function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;

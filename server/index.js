@@ -13,10 +13,8 @@ if (!fs.existsSync(dataDir)) {
 
 import db from './db.js';
 import { wrapSqlite } from './db-adapter.js';
-import { seedAdmin } from './seed.js';
 import { createApp } from './app.js';
 
-seedAdmin();
 const app = createApp({ db: wrapSqlite(db) });
 const PORT = process.env.PORT || 3000;
 

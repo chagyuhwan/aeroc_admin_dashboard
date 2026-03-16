@@ -11,6 +11,7 @@ import authRoutes from './routes/auth.js';
 import salesRoutes from './routes/sales.js';
 import projectsRoutes from './routes/projects.js';
 import usersRoutes from './routes/users.js';
+import contractsRoutes from './routes/contracts.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -36,6 +37,7 @@ export function createApp(options) {
   app.use('/api/sales', salesRoutes);
   app.use('/api/projects', projectsRoutes);
   app.use('/api/users', usersRoutes);
+  app.use('/api/contracts', contractsRoutes);
 
   app.get(['/login', '/login/', '/login.html'], async (req, res) => {
     if (assets) {

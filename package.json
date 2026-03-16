@@ -9,8 +9,7 @@
     "dev": "node server/index.js",
     "build:worker": "node scripts/build-worker.js",
     "deploy": "wrangler deploy",
-    "db:schema": "wrangler d1 execute aeroc-admin-db --remote --file=./schemas/schema.sql",
-    "db:seed": "wrangler d1 execute aeroc-admin-db --remote --file=./schemas/seed-admin.sql"
+    "db:schema": "wrangler d1 execute aeroc-admin-db --remote --file=./schemas/schema.sql"
   },
   "overrides": {
     "body-parser": "file:./stub"
