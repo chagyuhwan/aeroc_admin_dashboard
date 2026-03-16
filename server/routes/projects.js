@@ -20,20 +20,11 @@ router.get('/', authMiddleware, async (req, res) => {
     const db = req.db;
     const { user } = req;
     const isAdmin = user.role === 'admin';
-    const viewableIds = await getViewableUserIds(db, user);
     const { status, project_type, contract_period, search } = req.query;
-    let sql = `SELECT p.id, p.company_name, p.representative_name, p.representative_phone, p.manager, u.name as manager_name, p.project_type, p.contract_period, p.price, p.is_urgent, p.status, p.memo, p.created_at, p.updated_at FROM projects p LEFT JOIN users u ON u.username = p.manager WHERE 1=1`;
+    // All members see all projects (same as sales, contracts)
+    let sql = `SELECT p.id, p.company_name, p.representative_name, p.representative_phone, p.manager, u.name as manager_name, p.project_type, p.contract_period, p.price, p.is_urgent, p.status, p.memo, p.developer, p.website_url, p.created_at, p.updated_at FROM projects p LEFT JOIN users u ON u.username = p.manager WHERE 1=1`;
     const params = [];
 
-    if (!isAdmin) {
-      if (viewableIds.length === 1) {
-        sql += ` AND created_by = ?`;
-        params.push(viewableIds[0]);
-      } else {
-        sql += ` AND created_by IN (${viewableIds.map(() => '?').join(',')})`;
-        params.push(...viewableIds);
-      }
-    }
     if (status && status !== '전체' && STATUSES.includes(status)) {
       sql += ` AND status = ?`;
       params.push(status);
@@ -52,21 +43,12 @@ router.get('/', authMiddleware, async (req, res) => {
       params.push(term, term, term, term);
     }
 
-    sql += ` ORDER BY created_at DESC`;
-    const { results: projects } = await db.prepare(sql).bind(...params).all();
+    sql += ` ORDER BY p.created_at DESC`;
+    const stmt = db.prepare(sql);
+    const { results: projects } = params.length > 0 ? await stmt.bind(...params).all() : await stmt.all();
 
-    let countSql, countParams;
-    if (isAdmin) {
-      countSql = `SELECT status, COUNT(*) as cnt FROM projects GROUP BY status`;
-      countParams = [];
-    } else if (viewableIds.length === 1) {
-      countSql = `SELECT status, COUNT(*) as cnt FROM projects WHERE created_by = ? GROUP BY status`;
-      countParams = [viewableIds[0]];
-    } else {
-      countSql = `SELECT status, COUNT(*) as cnt FROM projects WHERE created_by IN (${viewableIds.map(() => '?').join(',')}) GROUP BY status`;
-      countParams = viewableIds;
-    }
-    const { results: counts } = await db.prepare(countSql).bind(...countParams).all();
+    const countSql = `SELECT status, COUNT(*) as cnt FROM projects GROUP BY status`;
+    const { results: counts } = await db.prepare(countSql).all();
     const countMap = { 전체: 0, 진행중: 0, 완료됨: 0, 대기중: 0 };
     counts.forEach(r => { countMap[r.status] = r.cnt; });
     countMap.전체 = counts.reduce((a, c) => a + c.cnt, 0);
@@ -100,7 +82,7 @@ function parseProjectTypeOption(opt) {
 router.post('/', authMiddleware, async (req, res) => {
   try {
     const db = req.db;
-    const { company_name, representative_name, representative_phone, manager, project_type_option, is_urgent, memo } = req.body;
+    const { company_name, representative_name, representative_phone, manager, project_type_option, is_urgent, memo, developer, website_url } = req.body;
 
     if (!company_name || !manager || !project_type_option) {
       return res.status(400).json({ success: false, message: '모든 필수 필드를 입력해주세요.' });
@@ -115,8 +97,8 @@ router.post('/', authMiddleware, async (req, res) => {
     const priceVal = price ?? 0;
 
     const result = await db.prepare(`
-      INSERT INTO projects (company_name, representative_name, representative_phone, manager, project_type, contract_period, price, is_urgent, status, memo, created_by)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, '진행중', ?, ?)
+      INSERT INTO projects (company_name, representative_name, representative_phone, manager, project_type, contract_period, price, is_urgent, status, memo, developer, website_url, created_by)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, '진행중', ?, ?, ?, ?)
     `).bind(
       company_name.trim(),
       (representative_name || '').trim() || null,
@@ -127,6 +109,8 @@ router.post('/', authMiddleware, async (req, res) => {
       priceVal,
       is_urgent ? 1 : 0,
       (memo || '').trim() || null,
+      (developer || '').trim() || null,
+      (website_url || '').trim() || null,
       req.user.id
     ).run();
 
@@ -147,18 +131,55 @@ router.post('/', authMiddleware, async (req, res) => {
   }
 });
 
+router.get('/:id', authMiddleware, async (req, res) => {
+  try {
+    const db = req.db;
+    const { id } = req.params;
+    const project = await db.prepare(`
+      SELECT p.id, p.company_name, p.representative_name, p.representative_phone, p.manager, u.name as manager_name, p.project_type, p.contract_period, p.price, p.is_urgent, p.status, p.memo, p.developer, p.website_url, p.created_at, p.updated_at
+      FROM projects p LEFT JOIN users u ON u.username = p.manager WHERE p.id = ?
+    `).bind(id).first();
+    if (!project) return res.status(404).json({ success: false, message: '프로젝트를 찾을 수 없습니다.' });
+    res.json({ success: true, project });
+  } catch (error) {
+    console.error('프로젝트 조회 오류:', error);
+    res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
+  }
+});
+
 router.patch('/:id', authMiddleware, async (req, res) => {
   try {
     const db = req.db;
     const { id } = req.params;
-    const { status } = req.body;
+    const { status, company_name, representative_name, representative_phone, manager, project_type_option, is_urgent, memo, developer, website_url } = req.body;
     const viewableIds = await getViewableUserIds(db, req.user);
     const project = await db.prepare('SELECT created_by FROM projects WHERE id = ?').bind(id).first();
     if (!project) return res.status(404).json({ success: false, message: '프로젝트를 찾을 수 없습니다.' });
     if (viewableIds && !viewableIds.includes(project.created_by)) {
       return res.status(403).json({ success: false, message: '수정 권한이 없습니다.' });
     }
-    if (status && STATUSES.includes(status)) {
+    if (company_name !== undefined && manager !== undefined && project_type_option !== undefined) {
+      const parsed = parseProjectTypeOption(project_type_option);
+      if (!parsed) return res.status(400).json({ success: false, message: '유효한 프로젝트 유형을 선택해주세요.' });
+      const { project_type, contract_period, price } = parsed;
+      await db.prepare(`
+        UPDATE projects SET company_name=?, representative_name=?, representative_phone=?, manager=?, project_type=?, contract_period=?, price=?, is_urgent=?, memo=?, developer=?, website_url=?, status=?, updated_at=CURRENT_TIMESTAMP WHERE id=?
+      `).bind(
+        (company_name || '').trim(),
+        (representative_name || '').trim() || null,
+        (representative_phone || '').trim() || null,
+        (manager || '').trim(),
+        parsed.project_type,
+        parsed.contract_period,
+        price ?? 0,
+        is_urgent ? 1 : 0,
+        (memo || '').trim() || null,
+        (developer || '').trim() || null,
+        (website_url || '').trim() || null,
+        status && STATUSES.includes(status) ? status : '진행중',
+        id
+      ).run();
+    } else if (status && STATUSES.includes(status)) {
       await db.prepare('UPDATE projects SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').bind(status, id).run();
     }
     res.json({ success: true, message: '수정되었습니다.' });

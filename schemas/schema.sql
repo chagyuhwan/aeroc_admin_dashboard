@@ -34,6 +34,8 @@ CREATE TABLE IF NOT EXISTS projects (
   is_urgent INTEGER DEFAULT 0,
   status TEXT DEFAULT '진행중',
   memo TEXT,
+  developer TEXT,
+  website_url TEXT,
   created_by INTEGER,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,

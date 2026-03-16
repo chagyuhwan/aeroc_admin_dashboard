@@ -923,6 +923,7 @@ body {
 }
 
 #projectForm input[type="text"],
+#projectForm input[type="url"],
 #projectForm input[type="tel"],
 #projectForm select,
 #projectForm textarea {

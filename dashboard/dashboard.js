@@ -108,12 +108,10 @@ function showPage(pageName) {
   const placeholder = document.getElementById('pagePlaceholder');
   const projectsPage = document.getElementById('projectsPage');
 
-  const settingsPage = document.getElementById('settingsPage');
   const employeesPage = document.getElementById('employeesPage');
   dashboardContent.style.display = 'none';
   placeholder.style.display = 'none';
   projectsPage.style.display = 'none';
-  if (settingsPage) settingsPage.style.display = 'none';
   if (employeesPage) employeesPage.style.display = 'none';
 
   if (pageName === 'dashboard') {
@@ -142,9 +140,6 @@ function showPage(pageName) {
         }
       });
     }
-  } else if (pageName === 'settings') {
-    if (settingsPage) settingsPage.style.display = 'block';
-    loadMyName();
   } else {
     placeholder.style.display = 'block';
     placeholder.querySelector('p').textContent = `${document.querySelector(`[data-page="${pageName}"] .label`)?.textContent || pageName} - 준비 중인 페이지입니다.`;
@@ -154,7 +149,7 @@ function showPage(pageName) {
 // URL 해시 기반 페이지 로드 (새로고침 시 현재 페이지 유지)
 function getPageFromHash() {
   const hash = window.location.hash.slice(1);
-  const validPages = ['dashboard', 'projects', 'employees', 'settings'];
+  const validPages = ['dashboard', 'projects', 'employees'];
   return validPages.includes(hash) ? hash : 'dashboard';
 }
 
@@ -400,7 +395,7 @@ async function loadProjects() {
 
 function showRowMenu(e, id) {
   e.stopPropagation();
-  const actions = ['진행중', '완료됨', '대기중', '삭제'];
+  const actions = ['수정', '진행중', '완료됨', '대기중', '삭제'];
   const existing = document.getElementById('rowMenu');
   if (existing) existing.remove();
 
@@ -415,13 +410,58 @@ function showRowMenu(e, id) {
     btn.onclick = () => {
       menu.remove();
       if (a === '삭제') deleteProject(id);
+      else if (a === '수정') openEditProject(id);
       else updateProjectStatus(id, a);
     };
     menu.appendChild(btn);
   });
   document.body.appendChild(menu);
+  const rect = menu.getBoundingClientRect();
+  const pad = 8;
+  let left = e.clientX;
+  let top = e.clientY;
+  if (left + rect.width > window.innerWidth - pad) left = window.innerWidth - rect.width - pad;
+  if (top + rect.height > window.innerHeight - pad) top = window.innerHeight - rect.height - pad;
+  if (left < pad) left = pad;
+  if (top < pad) top = pad;
+  menu.style.left = `${left}px`;
+  menu.style.top = `${top}px`;
   const close = () => { menu.remove(); document.removeEventListener('click', close); };
   setTimeout(() => document.addEventListener('click', close), 0);
+}
+
+let editingProjectId = null;
+
+async function openEditProject(id) {
+  try {
+    const res = await fetch(`/api/projects/${id}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const result = await res.json();
+    if (!result.success || !result.project) {
+      alert(result.message || '프로젝트를 불러올 수 없습니다.');
+      return;
+    }
+    const p = result.project;
+    editingProjectId = id;
+    projectsListView.style.display = 'none';
+    projectFormView.style.display = 'block';
+    document.getElementById('pageTitle').textContent = '프로젝트 수정';
+    document.getElementById('companyName').value = p.company_name || '';
+    document.getElementById('representativeName').value = p.representative_name || '';
+    document.getElementById('representativePhone').value = p.representative_phone || '';
+    document.getElementById('manager').value = p.manager || '';
+    document.getElementById('manager').removeAttribute('readonly');
+    document.getElementById('projectType').value = p.project_type === '최고급형' ? '최고급형' : `${p.project_type}_${p.contract_period}`;
+    document.getElementById('developer').value = p.developer || '';
+    document.getElementById('websiteUrl').value = p.website_url || '';
+    document.getElementById('projectMemo').value = p.memo || '';
+    document.getElementById('projectStatus').value = p.status || '진행중';
+    document.getElementById('isUrgent').checked = !!p.is_urgent;
+  } catch (err) {
+    console.error(err);
+    alert('프로젝트를 불러오는 중 오류가 발생했습니다.');
+  }
 }
 
 async function updateProjectStatus(id, status) {
@@ -484,13 +524,19 @@ document.getElementById('representativePhone').addEventListener('input', functio
 });
 
 document.getElementById('openProjectModal').addEventListener('click', () => {
+  editingProjectId = null;
   projectsListView.style.display = 'none';
   projectFormView.style.display = 'block';
   document.getElementById('pageTitle').textContent = '편집 및 추가';
+  document.getElementById('projectForm').reset();
+  document.getElementById('projectStatus').value = '진행중';
+  document.getElementById('isUrgent').checked = false;
   document.getElementById('manager').value = user.username || '';
+  document.getElementById('manager').setAttribute('readonly', 'readonly');
 });
 
 document.getElementById('cancelProjectForm').addEventListener('click', () => {
+  editingProjectId = null;
   projectFormView.style.display = 'none';
   projectsListView.style.display = 'block';
   document.getElementById('pageTitle').textContent = '프로젝트 관리';
@@ -586,7 +632,9 @@ document.getElementById('projectForm').addEventListener('submit', async (e) => {
     manager: managerVal,
     project_type_option: projectTypeOption,
     is_urgent: formData.get('is_urgent') === '1',
-    memo: (formData.get('memo') || '').trim()
+    memo: (formData.get('memo') || '').trim(),
+    developer: (formData.get('developer') || '').trim(),
+    website_url: (formData.get('website_url') || '').trim()
   };
 
   const saveBtn = form.querySelector('button[type="submit"]') || document.querySelector('button[form="projectForm"]');
@@ -596,13 +644,18 @@ document.getElementById('projectForm').addEventListener('submit', async (e) => {
   }
 
   try {
-    const res = await fetch('/api/projects', {
-      method: 'POST',
+    const isEdit = !!editingProjectId;
+    const url = isEdit ? `/api/projects/${editingProjectId}` : '/api/projects';
+    const method = isEdit ? 'PATCH' : 'POST';
+    const body = isEdit ? { ...data, status: formData.get('status') || '진행중' } : data;
+
+    const res = await fetch(url, {
+      method,
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(data)
+      body: JSON.stringify(body)
     });
     let result;
     try {
@@ -622,6 +675,7 @@ document.getElementById('projectForm').addEventListener('submit', async (e) => {
     }
     if (result.success) {
       form.reset();
+      editingProjectId = null;
       document.getElementById('projectStatus').value = '진행중';
       document.getElementById('isUrgent').checked = false;
       projectFormView.style.display = 'none';
@@ -629,9 +683,9 @@ document.getElementById('projectForm').addEventListener('submit', async (e) => {
       document.getElementById('pageTitle').textContent = '프로젝트 관리';
       loadProjects();
       loadSalesData();
-      alert('프로젝트가 등록되었습니다.');
+      alert(isEdit ? '프로젝트가 수정되었습니다.' : '프로젝트가 등록되었습니다.');
     } else {
-      alert(result.message || '등록에 실패했습니다.');
+      alert(result.message || (isEdit ? '수정에 실패했습니다.' : '등록에 실패했습니다.'));
     }
   } catch (err) {
     console.error('프로젝트 등록 오류:', err);
@@ -644,52 +698,7 @@ document.getElementById('projectForm').addEventListener('submit', async (e) => {
   }
 });
 
-// 설정 - 내 이름 로드 및 저장
-async function loadMyName() {
-  try {
-    const res = await fetch('/api/users/me', { headers: { 'Authorization': `Bearer ${token}` } });
-    const result = await res.json();
-    if (result.success && result.user) {
-      const nameInput = document.getElementById('myNameInput');
-      const phoneInput = document.getElementById('myPhoneInput');
-      if (nameInput) nameInput.value = result.user.name || '';
-      if (phoneInput) phoneInput.value = result.user.phone || '';
-    }
-  } catch (err) {
-    console.error('내 정보 로드 실패:', err);
-  }
-}
-
-document.getElementById('myPhoneInput')?.addEventListener('input', function() {
-  this.value = formatPhoneNumber(this.value);
-});
-
-document.getElementById('saveMyNameBtn')?.addEventListener('click', async () => {
-  const nameInput = document.getElementById('myNameInput');
-  const phoneInput = document.getElementById('myPhoneInput');
-  if (!nameInput) return;
-  try {
-    const res = await fetch('/api/users/me', {
-      method: 'PATCH',
-      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: nameInput.value.trim(), phone: (phoneInput?.value || '').trim() })
-    });
-    const result = await res.json();
-    if (result.success) {
-      const u = JSON.parse(localStorage.getItem('user') || '{}');
-      u.name = nameInput.value.trim();
-      if (phoneInput) u.phone = phoneInput.value.trim();
-      localStorage.setItem('user', JSON.stringify(u));
-      alert('저장되었습니다.');
-    } else {
-      alert(result.message || '저장에 실패했습니다.');
-    }
-  } catch (err) {
-    alert('저장 중 오류가 발생했습니다.');
-  }
-});
-
-// 설정/직원 관리 - 팀원 지정 (관리자 전용)
+// 직원 관리 - 팀원 지정 (관리자 전용)
 async function loadUsers(tableBodyId = 'employeesTableBody') {
   try {
     const res = await fetch('/api/users', {

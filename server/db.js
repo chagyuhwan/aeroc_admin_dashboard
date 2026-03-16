@@ -62,5 +62,7 @@ try { db.exec(`ALTER TABLE projects ADD COLUMN representative_name TEXT`); } cat
 try { db.exec(`ALTER TABLE projects ADD COLUMN representative_phone TEXT`); } catch (e) { if (!e.message.includes('duplicate column')) throw e; }
 try { db.exec(`ALTER TABLE projects ADD COLUMN is_urgent INTEGER DEFAULT 0`); } catch (e) { if (!e.message.includes('duplicate column')) throw e; }
 try { db.exec(`ALTER TABLE projects ADD COLUMN memo TEXT`); } catch (e) { if (!e.message.includes('duplicate column')) throw e; }
+try { db.exec(`ALTER TABLE projects ADD COLUMN developer TEXT`); } catch (e) { if (!e.message.includes('duplicate column')) throw e; }
+try { db.exec(`ALTER TABLE projects ADD COLUMN website_url TEXT`); } catch (e) { if (!e.message.includes('duplicate column')) throw e; }
 
 export default db;
