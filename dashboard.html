@@ -299,7 +299,19 @@
                                                     <optgroup label="최고급형">
                                                         <option value="최고급형">최고급형</option>
                                                     </optgroup>
+                                                    <optgroup label="프로모션">
+                                                        <option value="프로모션_기본형">프로모션 기본형</option>
+                                                        <option value="프로모션_고급형">프로모션 고급형</option>
+                                                        <option value="프로모션_최고급형">프로모션 최고급형</option>
+                                                    </optgroup>
                                                 </select>
+                                                <div id="projectAmountWrap" class="form-group form-group-full project-amount-wrap" style="display: none; margin-top: 12px;">
+                                                    <label for="projectAmount">금액 (원)</label>
+                                                    <div class="project-amount-input-wrap">
+                                                        <input type="number" id="projectAmount" name="project_amount" class="project-amount-input" placeholder="금액을 입력하세요" min="0" step="1000" inputmode="numeric">
+                                                        <span class="project-amount-suffix">원</span>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

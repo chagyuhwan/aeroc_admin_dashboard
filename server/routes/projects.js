@@ -27,8 +27,9 @@ router.get('/', authMiddleware, async (req, res) => {
       params.push(status);
     }
     if (project_type && PROJECT_TYPES.includes(project_type)) {
-      sql += ` AND project_type = ?`;
-      params.push(project_type);
+      const promoType = `프로모션_${project_type}`;
+      sql += ` AND (project_type = ? OR project_type = ?)`;
+      params.push(project_type, promoType);
     }
     if (contract_period && CONTRACT_PERIODS.includes(Number(contract_period))) {
       sql += ` AND contract_period = ?`;
@@ -65,9 +66,12 @@ const PRICE_MAP = {
   '최고급형': 0
 };
 
+const PROMOTION_TYPES = ['프로모션_기본형', '프로모션_고급형', '프로모션_최고급형'];
+
 function parseProjectTypeOption(opt) {
   if (!opt) return null;
   if (opt === '최고급형') return { project_type: '최고급형', contract_period: 0, price: 0 };
+  if (PROMOTION_TYPES.includes(opt)) return { project_type: opt, contract_period: 0, price: 0 };
   const [type, period] = opt.split('_');
   if (PROJECT_TYPES.includes(type) && CONTRACT_PERIODS.includes(Number(period))) {
     const price = PRICE_MAP[opt] ?? 0;
@@ -79,7 +83,7 @@ function parseProjectTypeOption(opt) {
 router.post('/', authMiddleware, async (req, res) => {
   try {
     const db = req.db;
-    const { company_name, representative_name, representative_phone, manager, project_type_option, is_urgent, memo, developer, website_url } = req.body;
+    const { company_name, representative_name, representative_phone, manager, project_type_option, project_amount, is_urgent, memo, developer, website_url } = req.body;
 
     if (!company_name || !manager || !project_type_option) {
       return res.status(400).json({ success: false, message: '모든 필수 필드를 입력해주세요.' });
@@ -91,7 +95,11 @@ router.post('/', authMiddleware, async (req, res) => {
     }
 
     const { project_type, contract_period, price } = parsed;
-    const priceVal = price ?? 0;
+    const priceVal = (project_amount !== undefined && project_amount !== null && project_amount !== '')
+      ? parseInt(project_amount, 10) : (price ?? 0);
+    if (isNaN(priceVal) || priceVal < 0) {
+      return res.status(400).json({ success: false, message: '금액을 올바르게 입력해주세요.' });
+    }
 
     const result = await db.prepare(`
       INSERT INTO projects (company_name, representative_name, representative_phone, manager, project_type, contract_period, price, is_urgent, status, memo, developer, website_url, created_by)
@@ -148,7 +156,7 @@ router.patch('/:id', authMiddleware, async (req, res) => {
   try {
     const db = req.db;
     const { id } = req.params;
-    const { status, company_name, representative_name, representative_phone, manager, project_type_option, is_urgent, memo, developer, website_url } = req.body;
+    const { status, company_name, representative_name, representative_phone, manager, project_type_option, project_amount, is_urgent, memo, developer, website_url } = req.body;
     const project = await db.prepare('SELECT created_by FROM projects WHERE id = ?').bind(id).first();
     if (!project) return res.status(404).json({ success: false, message: '프로젝트를 찾을 수 없습니다.' });
     if (!canModifyProject(req.user, project.created_by)) {
@@ -158,6 +166,11 @@ router.patch('/:id', authMiddleware, async (req, res) => {
       const parsed = parseProjectTypeOption(project_type_option);
       if (!parsed) return res.status(400).json({ success: false, message: '유효한 프로젝트 유형을 선택해주세요.' });
       const { project_type, contract_period, price } = parsed;
+      const priceVal = (project_amount !== undefined && project_amount !== null && project_amount !== '')
+        ? parseInt(project_amount, 10) : (price ?? 0);
+      if (isNaN(priceVal) || priceVal < 0) {
+        return res.status(400).json({ success: false, message: '금액을 올바르게 입력해주세요.' });
+      }
       await db.prepare(`
         UPDATE projects SET company_name=?, representative_name=?, representative_phone=?, manager=?, project_type=?, contract_period=?, price=?, is_urgent=?, memo=?, developer=?, website_url=?, status=?, updated_at=CURRENT_TIMESTAMP WHERE id=?
       `).bind(
@@ -167,7 +180,7 @@ router.patch('/:id', authMiddleware, async (req, res) => {
         (manager || '').trim(),
         parsed.project_type,
         parsed.contract_period,
-        price ?? 0,
+        priceVal,
         is_urgent ? 1 : 0,
         (memo || '').trim() || null,
         (developer || '').trim() || null,

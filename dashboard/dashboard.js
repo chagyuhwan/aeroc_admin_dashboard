@@ -530,7 +530,16 @@ async function openEditProject(id) {
     document.getElementById('representativePhone').value = p.representative_phone || '';
     document.getElementById('manager').value = p.manager || '';
     document.getElementById('manager').removeAttribute('readonly');
-    document.getElementById('projectType').value = p.project_type === '최고급형' ? '최고급형' : `${p.project_type}_${p.contract_period}`;
+    const pt = p.project_type || '';
+    if (pt.startsWith('프로모션_')) {
+      document.getElementById('projectType').value = pt;
+    } else if (pt === '최고급형') {
+      document.getElementById('projectType').value = '최고급형';
+    } else {
+      document.getElementById('projectType').value = `${pt}_${p.contract_period || 0}`;
+    }
+    syncProjectAmountField();
+    document.getElementById('projectAmount').value = p.price ?? '';
     document.getElementById('developer').value = p.developer || '';
     document.getElementById('websiteUrl').value = p.website_url || '';
     document.getElementById('projectMemo').value = p.memo || '';
@@ -601,6 +610,44 @@ document.getElementById('representativePhone').addEventListener('input', functio
   this.value = formatPhoneNumber(this.value);
 });
 
+const PRICE_MAP = {
+  '기본형_3': 1980000,
+  '기본형_5': 2640000,
+  '고급형_3': 2376000,
+  '고급형_5': 3300000,
+  '최고급형': null,
+  '프로모션_기본형': null,
+  '프로모션_고급형': null,
+  '프로모션_최고급형': null
+};
+
+const CUSTOM_AMOUNT_OPTIONS = ['최고급형', '프로모션_기본형', '프로모션_고급형', '프로모션_최고급형'];
+
+function syncProjectAmountField() {
+  const sel = document.getElementById('projectType');
+  const wrap = document.getElementById('projectAmountWrap');
+  const input = document.getElementById('projectAmount');
+  const opt = sel?.value || '';
+  if (!opt) {
+    wrap.style.display = 'none';
+    input.removeAttribute('required');
+    input.value = '';
+    return;
+  }
+  wrap.style.display = 'block';
+  input.setAttribute('required', 'required');
+  const defaultPrice = PRICE_MAP[opt];
+  if (defaultPrice != null) {
+    input.value = defaultPrice;
+    input.placeholder = '금액을 입력하세요 (프로모션 시 수정 가능)';
+  } else {
+    input.value = '';
+    input.placeholder = '금액을 입력하세요';
+  }
+}
+
+document.getElementById('projectType').addEventListener('change', syncProjectAmountField);
+
 document.getElementById('openProjectModal').addEventListener('click', () => {
   editingProjectId = null;
   projectsListView.style.display = 'none';
@@ -611,6 +658,7 @@ document.getElementById('openProjectModal').addEventListener('click', () => {
   document.getElementById('isUrgent').checked = false;
   document.getElementById('manager').value = user.username || '';
   document.getElementById('manager').setAttribute('readonly', 'readonly');
+  syncProjectAmountField();
 });
 
 document.getElementById('cancelProjectForm').addEventListener('click', () => {
@@ -693,6 +741,16 @@ document.getElementById('projectForm').addEventListener('submit', async (e) => {
     alert('프로젝트 유형을 선택해주세요.');
     return;
   }
+  const amountStr = formData.get('project_amount') || '';
+  const amountNum = amountStr ? parseInt(amountStr, 10) : 0;
+  if (isNaN(amountNum) || amountNum < 0) {
+    alert('금액을 올바르게 입력해주세요.');
+    return;
+  }
+  if (CUSTOM_AMOUNT_OPTIONS.includes(projectTypeOption) && amountNum === 0) {
+    alert('금액을 입력해주세요.');
+    return;
+  }
   if (!managerVal) {
     alert('담당자 정보가 없습니다. 다시 로그인해주세요.');
     return;
@@ -704,6 +762,7 @@ document.getElementById('projectForm').addEventListener('submit', async (e) => {
     representative_phone: (formData.get('representative_phone') || '').trim(),
     manager: managerVal,
     project_type_option: projectTypeOption,
+    project_amount: amountNum,
     is_urgent: formData.get('is_urgent') === '1',
     memo: (formData.get('memo') || '').trim(),
     developer: (formData.get('developer') || '').trim(),
