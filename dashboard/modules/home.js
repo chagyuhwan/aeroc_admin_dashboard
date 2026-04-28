@@ -55,20 +55,22 @@ export function updateChartColors() {
   }
 }
 
-export async function loadDashboardData(authToken) {
+export async function loadDashboardData(authToken, options = {}) {
   token = authToken;
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth() + 1;
   const h = { 'Authorization': `Bearer ${token}` };
+  const out = options.includeOutsourcing ? '&include_outsourcing=1' : '';
+  const outQ = options.includeOutsourcing ? '?include_outsourcing=1' : '';
 
   try {
     const [projectsRes, allContractsRes, monthlyContractsRes, salesRes, rankingRes] = await Promise.all([
       fetch('/api/projects', { headers: h }),
-      fetch('/api/contracts', { headers: h }),
-      fetch(`/api/contracts?year=${year}&month=${month}`, { headers: h }),
-      fetch('/api/sales', { headers: h }),
-      fetch(`/api/sales/ranking?year=${year}&month=${month}`, { headers: h })
+      fetch(`/api/contracts${outQ}`, { headers: h }),
+      fetch(`/api/contracts?year=${year}&month=${month}${out}`, { headers: h }),
+      fetch(`/api/sales${outQ}`, { headers: h }),
+      fetch(`/api/sales/ranking?year=${year}&month=${month}${out}`, { headers: h })
     ]);
     const [projects, allContracts, monthlyContracts, sales, ranking] = await Promise.all([
       projectsRes.json(), allContractsRes.json(), monthlyContractsRes.json(), salesRes.json(), rankingRes.json()

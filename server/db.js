@@ -155,6 +155,51 @@ db.exec(`
   )
 `);
 
+// work_reports 테이블 (업무보고서)
+db.exec(`
+  CREATE TABLE IF NOT EXISTS work_reports (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    date TEXT NOT NULL,
+    title TEXT NOT NULL,
+    content TEXT,
+    call_time TEXT,
+    call_count INTEGER DEFAULT 0,
+    materials TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, date)
+  )
+`);
+try { db.exec(`ALTER TABLE work_reports ADD COLUMN call_time TEXT`); } catch(e) {}
+try { db.exec(`ALTER TABLE work_reports ADD COLUMN call_count INTEGER DEFAULT 0`); } catch(e) {}
+try { db.exec(`ALTER TABLE work_reports ADD COLUMN materials TEXT`); } catch(e) {}
+try { db.exec(`ALTER TABLE work_reports ADD COLUMN attachment_key TEXT`); } catch(e) {}
+try { db.exec(`ALTER TABLE work_reports ADD COLUMN attachment_name TEXT`); } catch(e) {}
+try { db.exec(`ALTER TABLE work_reports ADD COLUMN attachment_mime TEXT`); } catch(e) {}
+
+// outsourcing 테이블 (외주관리)
+db.exec(`
+  CREATE TABLE IF NOT EXISTS outsourcing (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    company_name TEXT NOT NULL,
+    outsource_type TEXT NOT NULL,
+    representative TEXT,
+    phone TEXT,
+    manager TEXT,
+    price INTEGER DEFAULT 0,
+    status TEXT DEFAULT '진행중',
+    start_date DATE,
+    due_date DATE,
+    memo TEXT,
+    created_by INTEGER REFERENCES users(id),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+try { db.exec(`ALTER TABLE outsourcing ADD COLUMN representative TEXT`); } catch(e) { if (!e.message?.includes('duplicate column')) {} }
+try { db.exec(`ALTER TABLE outsourcing ADD COLUMN phone TEXT`); } catch(e) { if (!e.message?.includes('duplicate column')) {} }
+
 // attendance 테이블 (출근기록부)
 db.exec(`
   CREATE TABLE IF NOT EXISTS attendance (

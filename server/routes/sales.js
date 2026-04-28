@@ -8,30 +8,36 @@ router.get('/', authMiddleware, async (req, res) => {
     const db = req.db;
     const { user } = req;
     const isAdmin = user.role === 'admin';
+    const includeOutsourcing = req.query.include_outsourcing === '1' && isAdmin;
 
-    // All members (admin, team_leader, user) see total company sales
-    const dailyQuery = `SELECT date(created_at) as date, SUM(price) / 10000.0 as total 
-         FROM projects 
-         WHERE price > 0 AND date(created_at) >= date('now', '-7 days')
-         GROUP BY date(created_at) 
-         ORDER BY date`;
+    const sourceSQL = includeOutsourcing
+      ? `(SELECT price, created_at FROM projects WHERE price > 0 UNION ALL SELECT price, created_at FROM outsourcing WHERE price > 0)`
+      : `(SELECT price, created_at FROM projects WHERE price > 0)`;
+
+    const dailyQuery = `
+      SELECT date(created_at) as date, SUM(price) / 10000.0 as total
+      FROM ${sourceSQL}
+      WHERE date(created_at) >= date('now', '-7 days')
+      GROUP BY date(created_at)
+      ORDER BY date`;
 
     const { results: dailyRows } = await db.prepare(dailyQuery).all();
 
-    const cumulativeQuery = `SELECT strftime('%Y-%m', created_at) as month, SUM(price) / 10000.0 as total 
-         FROM projects 
-         WHERE price > 0 AND date(created_at) >= date('now', '-6 months')
-         GROUP BY strftime('%Y-%m', created_at) 
-         ORDER BY month`;
+    const cumulativeQuery = `
+      SELECT strftime('%Y-%m', created_at) as month, SUM(price) / 10000.0 as total
+      FROM ${sourceSQL}
+      WHERE date(created_at) >= date('now', '-6 months')
+      GROUP BY strftime('%Y-%m', created_at)
+      ORDER BY month`;
 
     const { results: cumulativeRows } = await db.prepare(cumulativeQuery).all();
 
-    // 이번달 일별 매출
-    const monthlyQuery = `SELECT date(created_at) as date, SUM(price) / 10000.0 as total 
-         FROM projects 
-         WHERE price > 0 AND strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now')
-         GROUP BY date(created_at) 
-         ORDER BY date`;
+    const monthlyQuery = `
+      SELECT date(created_at) as date, SUM(price) / 10000.0 as total
+      FROM ${sourceSQL}
+      WHERE strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now')
+      GROUP BY date(created_at)
+      ORDER BY date`;
 
     const { results: monthlyRows } = await db.prepare(monthlyQuery).all();
 
@@ -86,15 +92,26 @@ router.get('/ranking', authMiddleware, async (req, res) => {
     const y = String(year).padStart(4, '0');
     const m = String(month).padStart(2, '0');
 
-    const { results } = await db.prepare(`
-      SELECT p.manager, u.name as manager_name, SUM(p.price) as total, COUNT(*) as cnt
-      FROM projects p
-      LEFT JOIN users u ON u.username = p.manager
-      WHERE p.price > 0 AND strftime('%Y', p.created_at) = ? AND strftime('%m', p.created_at) = ?
-      GROUP BY p.manager
-      ORDER BY total DESC
-      LIMIT 10
-    `).bind(y, m).all();
+    const isAdmin = req.user.role === 'admin';
+    const includeOutsourcing = req.query.include_outsourcing === '1' && isAdmin;
+
+    const rankingSQL = includeOutsourcing
+      ? `SELECT manager, manager_name, SUM(price) as total, COUNT(*) as cnt
+         FROM (
+           SELECT p.manager, u.name as manager_name, p.price, p.created_at
+           FROM projects p LEFT JOIN users u ON u.username = p.manager WHERE p.price > 0
+           UNION ALL
+           SELECT o.manager, o.manager as manager_name, o.price, o.created_at
+           FROM outsourcing o WHERE o.price > 0
+         )
+         WHERE strftime('%Y', created_at) = ? AND strftime('%m', created_at) = ?
+         GROUP BY manager ORDER BY total DESC LIMIT 10`
+      : `SELECT p.manager, u.name as manager_name, SUM(p.price) as total, COUNT(*) as cnt
+         FROM projects p LEFT JOIN users u ON u.username = p.manager
+         WHERE p.price > 0 AND strftime('%Y', p.created_at) = ? AND strftime('%m', p.created_at) = ?
+         GROUP BY p.manager ORDER BY total DESC LIMIT 10`;
+
+    const { results } = await db.prepare(rankingSQL).bind(y, m).all();
 
     res.json({ success: true, ranking: results });
   } catch (error) {

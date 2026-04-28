@@ -18,6 +18,8 @@ import { initCustomers, loadCustomerData } from './modules/customers.js';
 import { initQuote, loadQuotePage } from './modules/quote.js';
 import { initAttendance, loadAttendance } from './modules/attendance.js';
 import { initSchedule, loadSchedulePage } from './modules/schedule.js';
+import { initOutsourcing, loadOutsourcing } from './modules/outsourcing.js';
+import { initWorkreport, loadWorkreport } from './modules/workreport.js';
 
 // ── 인증 체크 ──────────────────────────────────────────
 const token = localStorage.getItem('token');
@@ -40,8 +42,7 @@ const badge = document.getElementById('sidebarRoleBadge');
 if (badge) badge.textContent = roleLabel;
 
 if (user.role === 'admin') {
-  document.getElementById('staffMgmtNavItem')?.classList.add('visible');
-  document.getElementById('attendanceNavItem')?.classList.add('visible');
+  document.getElementById('adminNavSection').style.display = '';
 }
 
 // ── 테마 ───────────────────────────────────────────────
@@ -95,7 +96,8 @@ document.getElementById('logoutBtn')?.addEventListener('click', () => {
 
 // ── 페이지 전환 ────────────────────────────────────────
 const PAGES = {
-  dashboard: document.getElementById('dashboardContent'),
+  home: document.getElementById('dashboardContent'),
+  'admin-dashboard': document.getElementById('dashboardContent'),
   projects: document.getElementById('projectsPage'),
   employees: document.getElementById('employeesPage'),
   'password-vault': document.getElementById('passwordVaultPage'),
@@ -105,6 +107,8 @@ const PAGES = {
   quote: document.getElementById('quotePage'),
   attendance: document.getElementById('attendancePage'),
   schedule: document.getElementById('schedulePage'),
+  outsourcing: document.getElementById('outsourcingPage'),
+  workreport: document.getElementById('workreportPage'),
 };
 const placeholder = document.getElementById('pagePlaceholder');
 
@@ -117,9 +121,14 @@ function showPage(pageName) {
   hideAllPages();
 
   switch (pageName) {
-    case 'dashboard':
-      PAGES.dashboard.style.display = 'block';
-      loadDashboardData(token);
+    case 'home':
+      PAGES.home.style.display = 'block';
+      loadDashboardData(token, { includeOutsourcing: false });
+      break;
+    case 'admin-dashboard':
+      if (user.role !== 'admin') { placeholder.style.display = 'block'; placeholder.querySelector('p').textContent = '관리자만 접근할 수 있습니다.'; return; }
+      PAGES['admin-dashboard'].style.display = 'block';
+      loadDashboardData(token, { includeOutsourcing: true });
       break;
     case 'projects':
       PAGES.projects.style.display = 'block';
@@ -150,6 +159,13 @@ function showPage(pageName) {
     case 'schedule':
       if (PAGES.schedule) { PAGES.schedule.style.display = 'block'; loadSchedulePage(); }
       break;
+    case 'outsourcing':
+      if (user.role !== 'admin') { placeholder.style.display = 'block'; placeholder.querySelector('p').textContent = '관리자만 접근할 수 있습니다.'; return; }
+      if (PAGES.outsourcing) { PAGES.outsourcing.style.display = 'block'; loadOutsourcing(); }
+      break;
+    case 'workreport':
+      if (PAGES.workreport) { PAGES.workreport.style.display = 'block'; loadWorkreport(); }
+      break;
     case 'employees':
       if (PAGES.employees) {
         PAGES.employees.style.display = 'block';
@@ -175,8 +191,8 @@ function showPage(pageName) {
 
 function getPageFromHash() {
   const hash = window.location.hash.slice(1);
-  const validPages = ['dashboard', 'projects', 'employees', 'password-vault', 'leave', 'staff-mgmt', 'customers', 'quote', 'attendance', 'schedule'];
-  return validPages.includes(hash) ? hash : 'dashboard';
+  const validPages = ['home', 'admin-dashboard', 'projects', 'employees', 'password-vault', 'leave', 'staff-mgmt', 'customers', 'quote', 'attendance', 'schedule', 'outsourcing', 'workreport'];
+  return validPages.includes(hash) ? hash : 'home';
 }
 
 function syncNavAndPage() {
@@ -203,3 +219,5 @@ initCustomers(token);
 initQuote();
 initAttendance(token);
 initSchedule(token);
+initOutsourcing(token, user);
+initWorkreport(token, user);

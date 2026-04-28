@@ -17,6 +17,8 @@ import customersRoutes from './routes/customers.js';
 import vacationsRoutes from './routes/vacations.js';
 import attendanceRoutes from './routes/attendance.js';
 import schedulesRoutes from './routes/schedules.js';
+import outsourcingRoutes from './routes/outsourcing.js';
+import workreportRoutes from './routes/workreport.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -48,6 +50,8 @@ export function createApp(options) {
   app.use('/api/vacations', vacationsRoutes);
   app.use('/api/attendance', attendanceRoutes);
   app.use('/api/schedules', schedulesRoutes);
+  app.use('/api/outsourcing', outsourcingRoutes);
+  app.use('/api/workreport', workreportRoutes);
 
   app.get(['/login', '/login/', '/login.html'], async (req, res) => {
     if (assets) {

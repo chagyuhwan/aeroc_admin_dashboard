@@ -39,19 +39,31 @@
             <!-- 네비게이션 -->
             <nav class="sidebar-nav-wrap">
                 <div class="nav-section">
+                    <ul class="sidebar-nav">
+                        <li><a href="#home" class="nav-link" data-page="home">
+                            <span class="icon"><i class='bx bxs-home'></i></span>
+                            <span class="label">홈</span>
+                        </a></li>
+                    </ul>
+                </div>
+                <div class="nav-section" id="adminNavSection" style="display:none;">
                     <span class="nav-section-title">관리자</span>
                     <ul class="sidebar-nav">
-                        <li><a href="#dashboard" class="nav-link" data-page="dashboard">
-                            <span class="icon"><i class='bx bxs-home'></i></span>
-                            <span class="label">대시보드</span>
+                        <li><a href="#admin-dashboard" class="nav-link" data-page="admin-dashboard">
+                            <span class="icon"><i class='bx bx-grid-alt'></i></span>
+                            <span class="label">관리자 대시보드</span>
                         </a></li>
-                        <li class="admin-only-nav" id="staffMgmtNavItem"><a href="#staff-mgmt" class="nav-link" data-page="staff-mgmt">
+                        <li><a href="#staff-mgmt" class="nav-link" data-page="staff-mgmt">
                             <span class="icon"><i class='bx bx-user-pin'></i></span>
                             <span class="label">직원 관리</span>
                         </a></li>
-                        <li class="admin-only-nav" id="attendanceNavItem"><a href="#attendance" class="nav-link" data-page="attendance">
+                        <li><a href="#attendance" class="nav-link" data-page="attendance">
                             <span class="icon"><i class='bx bx-calendar-check'></i></span>
                             <span class="label">출근기록부</span>
+                        </a></li>
+                        <li><a href="#outsourcing" class="nav-link" data-page="outsourcing">
+                            <span class="icon"><i class='bx bx-briefcase-alt-2'></i></span>
+                            <span class="label">외주관리</span>
                         </a></li>
                     </ul>
                 </div>
@@ -74,6 +86,10 @@
                         <li><a href="#schedule" class="nav-link" data-page="schedule">
                             <span class="icon"><i class='bx bx-calendar-event'></i></span>
                             <span class="label">월간 일정표</span>
+                        </a></li>
+                        <li><a href="#workreport" class="nav-link" data-page="workreport">
+                            <span class="icon"><i class='bx bx-file-blank'></i></span>
+                            <span class="label">업무보고서</span>
                         </a></li>
                         <li><a href="#leave" class="nav-link" data-page="leave">
                             <span class="icon"><i class='bx bx-trip'></i></span>
@@ -1164,6 +1180,108 @@
                     </div>
                 </div>
 
+                <!-- 업무보고서 페이지 -->
+                <div class="attendance-page" id="workreportPage" style="display:none;">
+                    <div class="att-page-header">
+                        <div>
+                            <h2 class="dash-title">업무보고서</h2>
+                            <p class="dash-subtitle">직원별 월간 업무 보고 현황을 관리합니다</p>
+                        </div>
+                    </div>
+
+                    <div class="att-legend-bar" id="wrLegend"></div>
+
+                    <div class="att-toolbar">
+                        <div class="att-toolbar-left">
+                            <button class="att-nav-btn" id="wrPrevBtn"><i class='bx bx-chevron-left'></i></button>
+                            <button class="att-nav-btn" id="wrNextBtn"><i class='bx bx-chevron-right'></i></button>
+                            <button class="att-today-btn" id="wrTodayBtn">오늘</button>
+                        </div>
+                        <span class="att-month-label" id="wrMonthLabel">2026년 4월</span>
+                        <div class="att-toolbar-right"></div>
+                    </div>
+
+                    <div class="att-cal-wrap">
+                        <table class="att-cal-table">
+                            <thead>
+                                <tr class="att-dow-row">
+                                    <th class="att-dow sun">일</th>
+                                    <th class="att-dow">월</th>
+                                    <th class="att-dow">화</th>
+                                    <th class="att-dow">수</th>
+                                    <th class="att-dow">목</th>
+                                    <th class="att-dow">금</th>
+                                    <th class="att-dow sat">토</th>
+                                </tr>
+                            </thead>
+                            <tbody id="wrCalBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 업무보고서 추가/편집 모달 -->
+                <div class="modal-overlay" id="wrModalOverlay" style="display:none;">
+                    <div class="modal" style="max-width:480px;">
+                        <div class="modal-header">
+                            <h3 id="wrModalTitle">업무 보고</h3>
+                            <button class="modal-close" id="wrModalClose"><i class='bx bx-x'></i></button>
+                        </div>
+                        <div class="modal-body">
+                            <input type="hidden" id="wrEditUserId">
+                            <input type="hidden" id="wrEditDate">
+                            <input type="hidden" id="wrEditRecordId">
+                            <div class="vault-form-group" id="wrModalUserRow" style="display:none;margin-bottom:12px;">
+                                <label>직원 선택</label>
+                                <select id="wrModalUserSelect" class="form-control"></select>
+                            </div>
+                            <input type="hidden" id="wrEditTitle">
+                            <div class="vault-form-row" style="margin-bottom:12px;">
+                                <div class="vault-form-group">
+                                    <label>콜 시간</label>
+                                    <input type="text" id="wrEditCallTime" class="form-control" placeholder="예) 2시간 30분">
+                                </div>
+                                <div class="vault-form-group">
+                                    <label>콜 건수</label>
+                                    <input type="number" id="wrEditCallCount" class="form-control" placeholder="0" min="0" inputmode="numeric">
+                                </div>
+                            </div>
+                            <div class="vault-form-group" style="margin-bottom:12px;">
+                                <label>자료</label>
+                                <input type="text" id="wrEditMaterials" class="form-control" placeholder="사용 자료 또는 첨부 자료명">
+                            </div>
+                            <div class="vault-form-group">
+                                <label>첨부 이미지</label>
+                                <!-- 업로드 버튼 -->
+                                <div id="wrAttachUploadArea" style="display:flex;flex-direction:column;gap:8px;">
+                                    <label for="wrFileInput" class="wr-attach-label">
+                                        <i class='bx bx-image-add'></i> 이미지 선택
+                                    </label>
+                                    <input type="file" id="wrFileInput" accept="image/*" style="display:none;">
+                                    <!-- 대기 파일 표시 -->
+                                    <div id="wrAttachPending" style="display:none;" class="wr-attach-pending">
+                                        <i class='bx bx-image'></i>
+                                        <span id="wrAttachPendingName"></span>
+                                        <button type="button" id="wrAttachCancelBtn" class="wr-attach-cancel"><i class='bx bx-x'></i></button>
+                                    </div>
+                                    <!-- 기존 파일 표시 -->
+                                    <div id="wrAttachCurrent" style="display:none;" class="wr-attach-current">
+                                        <a id="wrAttachCurrentLink" href="#" target="_blank" class="wr-attach-link">
+                                            <i class='bx bx-image-alt'></i>
+                                            <span id="wrAttachCurrentName"></span>
+                                        </a>
+                                        <button type="button" id="wrAttachDeleteBtn" class="wr-attach-cancel"><i class='bx bx-trash'></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-danger" id="wrDeleteBtn" style="display:none;margin-right:auto;">삭제</button>
+                            <button class="btn btn-secondary" id="wrModalCancel">취소</button>
+                            <button class="btn btn-primary" id="wrSaveBtn">저장</button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- 출근기록 추가/편집 모달 -->
                 <div class="modal-overlay" id="attModalOverlay" style="display:none;">
                     <div class="modal" style="max-width:420px;">
@@ -1200,6 +1318,143 @@
                             <button class="btn btn-secondary" id="attModalCancel">취소</button>
                             <button class="btn btn-primary" id="attSaveBtn">저장</button>
                         </div>
+                    </div>
+                </div>
+
+                <!-- 외주관리 페이지 -->
+                <div class="projects-page" id="outsourcingPage" style="display:none;">
+                    <!-- 목록 뷰 -->
+                    <div id="outsourcingListView">
+                        <div class="projects-header" style="margin-bottom:16px;">
+                            <div>
+                                <h2 class="projects-title" id="outPageTitle">외주관리</h2>
+                            </div>
+                            <div style="display:flex;gap:8px;align-items:center;">
+                                <button type="button" class="btn-excel" id="outExcelDownload">
+                                    <i class='bx bx-download'></i> 엑셀 다운로드
+                                </button>
+                                <button type="button" class="btn-primary" id="openOutsourcingModal">
+                                    <i class='bx bx-plus'></i> 외주 등록
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="status-tabs">
+                            <button type="button" class="out-tab-btn tab-btn active" data-status="전체">전체 <span class="tab-count" id="outCountAll">0</span></button>
+                            <button type="button" class="out-tab-btn tab-btn" data-status="진행중">진행중 <span class="tab-count" id="outCountProgress">0</span></button>
+                            <button type="button" class="out-tab-btn tab-btn" data-status="완료됨">완료됨 <span class="tab-count" id="outCountDone">0</span></button>
+                            <button type="button" class="out-tab-btn tab-btn" data-status="대기중">대기중 <span class="tab-count" id="outCountPending">0</span></button>
+                        </div>
+
+                        <div class="search-bar">
+                            <input type="text" class="search-input" id="outSearchInput" placeholder="업체명, 유형, 담당자로 검색하세요">
+                            <button type="button" class="btn-search" id="outSearchBtn">검색</button>
+                        </div>
+
+                        <div class="table-card">
+                            <div class="project-table-wrap">
+                                <table class="project-table">
+                                    <thead>
+                                        <tr>
+                                            <th>업체명</th>
+                                            <th>업체 대표</th>
+                                            <th>전화번호</th>
+                                            <th>홈페이지 유형</th>
+                                            <th>금액</th>
+                                            <th>담당자</th>
+                                            <th>상태</th>
+                                            <th>등록일</th>
+                                            <th class="col-action"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="outsourcingListBody">
+                                        <tr class="empty-row" id="outsourcingEmptyRow">
+                                            <td colspan="9">등록된 외주 데이터가 없습니다.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 등록/수정 뷰 -->
+                    <div id="outsourcingFormView" class="project-form-view" style="display:none;">
+                        <div class="form-view-header">
+                            <h2 class="form-view-title" id="outFormTitle">외주 등록</h2>
+                            <div class="form-view-actions">
+                                <button type="button" class="btn-cancel" id="cancelOutsourcingForm">취소</button>
+                                <button type="submit" form="outsourcingForm" class="btn-save">
+                                    <i class='bx bx-save'></i> 저장
+                                </button>
+                            </div>
+                        </div>
+                        <form id="outsourcingForm">
+                        <div class="form-view-content">
+                            <div class="form-main">
+                                <div class="form-section">
+                                    <h4>업체 정보</h4>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="outCompanyName">업체명 <span class="req">*</span></label>
+                                            <input type="text" id="outCompanyName" placeholder="외주 업체명을 입력하세요" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="outRepresentative">업체 대표</label>
+                                            <input type="text" id="outRepresentative" placeholder="대표자 이름">
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="outPhone">업체 전화번호</label>
+                                            <input type="text" id="outPhone" placeholder="010-0000-0000" inputmode="tel" maxlength="14">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="outManager">담당자</label>
+                                            <input type="text" id="outManager" placeholder="담당자명">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-section">
+                                    <h4>홈페이지 유형</h4>
+                                    <div class="form-row">
+                                        <div class="form-group form-group-full">
+                                            <label for="outType">유형 선택 <span class="req">*</span></label>
+                                            <select id="outType" required>
+                                                <option value="">선택하세요</option>
+                                                <option value="기본형">기본형 (150,000원)</option>
+                                                <option value="고급형">고급형 (200,000원)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group form-group-full">
+                                            <label>금액</label>
+                                            <div id="outPriceDisplay" style="padding:10px 12px;background:var(--bg-hover);border-radius:8px;font-weight:600;color:var(--accent);">유형을 선택하면 자동 계산됩니다</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-section">
+                                    <h4>메모</h4>
+                                    <div class="form-group">
+                                        <textarea id="outMemo" rows="4" placeholder="외주 관련 추가 메모를 입력하세요."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <aside class="form-sidebar">
+                                <div class="form-sidebar-section">
+                                    <h4>분류</h4>
+                                    <div class="form-group">
+                                        <label>상태</label>
+                                        <select id="outStatus">
+                                            <option value="진행중">진행중</option>
+                                            <option value="완료됨">완료됨</option>
+                                            <option value="대기중">대기중</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </aside>
+                        </div>
+                        </form>
                     </div>
                 </div>
 

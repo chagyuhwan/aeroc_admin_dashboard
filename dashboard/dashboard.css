@@ -1694,6 +1694,48 @@ body {
 
 .checkbox-label input { width: 17px !important; height: 17px; accent-color: var(--accent); }
 
+/* ===== 외주관리 폼 ===== */
+#outsourcingForm label {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+#outsourcingForm input[type="text"],
+#outsourcingForm input[type="tel"],
+#outsourcingForm select,
+#outsourcingForm textarea {
+  width: 100%;
+  padding: 11px 13px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  font-size: 13.5px;
+  background: var(--bg-main);
+  color: var(--text-primary);
+  transition: border-color 0.15s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+#outsourcingForm textarea { resize: vertical; min-height: 100px; }
+
+#outsourcingForm input:focus,
+#outsourcingForm select:focus,
+#outsourcingForm textarea:focus { outline: none; border-color: var(--accent); }
+
+#outPriceDisplay {
+  padding: 13px 16px;
+  background: var(--accent-bg);
+  border: 1px solid rgba(0,100,255,0.15);
+  border-radius: 9px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -0.3px;
+}
+
 /* ===== 직원 관리 ===== */
 .settings-page { padding: 1.5rem; }
 .settings-title { font-size: 1.4rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary); }
@@ -3647,4 +3689,62 @@ select.form-control {
 }
 .sch-color-dot:hover { transform: scale(1.2); }
 .sch-color-dot.selected { border-color: var(--text-primary); transform: scale(1.15); }
+
+/* ===== 업무보고서 첨부파일 ===== */
+.wr-attach-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1.5px dashed var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-secondary);
+  transition: border-color 0.15s, color 0.15s;
+  width: fit-content;
+}
+.wr-attach-label:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.wr-attach-pending, .wr-attach-current {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg-hover);
+  border-radius: 8px;
+  font-size: 13.5px;
+}
+.wr-attach-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+.wr-attach-link:hover { text-decoration: underline; }
+.wr-attach-cancel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  border-radius: 4px;
+  font-size: 15px;
+  padding: 0;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.wr-attach-cancel:hover { color: #e53e3e; background: rgba(229,62,62,0.08); }
 
