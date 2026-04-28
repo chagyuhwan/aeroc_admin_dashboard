@@ -1,6 +1,6 @@
 /**
  * Express 앱 팩토리 - DB를 주입받아 앱 생성
- * 로컬: better-sqlite3, Cloudflare: D1
+ * 로컬: node:sqlite, Cloudflare: D1
  * @param {object} options - { db, assets? } assets는 Cloudflare Workers용
  */
 import express from 'express';
@@ -12,6 +12,11 @@ import salesRoutes from './routes/sales.js';
 import projectsRoutes from './routes/projects.js';
 import usersRoutes from './routes/users.js';
 import contractsRoutes from './routes/contracts.js';
+import passwordsRoutes from './routes/passwords.js';
+import customersRoutes from './routes/customers.js';
+import vacationsRoutes from './routes/vacations.js';
+import attendanceRoutes from './routes/attendance.js';
+import schedulesRoutes from './routes/schedules.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -27,7 +32,7 @@ export function createApp(options) {
   });
 
   app.use(cors());
-  app.use(express.json());
+  app.use(express.json({ limit: '30mb' }));
 
   if (!assets) {
     app.use(express.static(path.join(__dirname, '..')));
@@ -38,6 +43,11 @@ export function createApp(options) {
   app.use('/api/projects', projectsRoutes);
   app.use('/api/users', usersRoutes);
   app.use('/api/contracts', contractsRoutes);
+  app.use('/api/passwords', passwordsRoutes);
+  app.use('/api/customers', customersRoutes);
+  app.use('/api/vacations', vacationsRoutes);
+  app.use('/api/attendance', attendanceRoutes);
+  app.use('/api/schedules', schedulesRoutes);
 
   app.get(['/login', '/login/', '/login.html'], async (req, res) => {
     if (assets) {

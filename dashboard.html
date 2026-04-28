@@ -21,16 +21,93 @@
             <div class="sidebar-header">
                 <div class="sidebar-logo">
                     <img src="/dashboard/aeroc.png" alt="AEROC" class="logo-img">
+                    <span class="sidebar-role-badge" id="sidebarRoleBadge">관리자</span>
                 </div>
                 <button class="sidebar-toggle" id="sidebarClose" aria-label="메뉴 닫기">
                     <i class='bx bx-x'></i>
                 </button>
             </div>
-            <ul class="sidebar-nav">
-                <li><a href="#dashboard" class="nav-link" data-page="dashboard"><span class="icon"><i class='bx bxs-home'></i></span><span class="label">대시보드 홈</span></a></li>
-                <li><a href="#projects" class="nav-link" data-page="projects"><span class="icon"><i class='bx bxs-folder'></i></span><span class="label">프로젝트 관리</span></a></li>
-                <li><a href="#employees" class="nav-link" data-page="employees"><span class="icon"><i class='bx bxs-user-detail'></i></span><span class="label">직원 관리</span></a></li>
-            </ul>
+
+            <!-- 유저 정보 -->
+            <div class="sidebar-user">
+                <div class="sidebar-user-info">
+                    <span class="sidebar-user-name" id="sidebarUserName">-</span>
+                    <span class="sidebar-user-role" id="sidebarUserRole">멤버</span>
+                </div>
+            </div>
+
+            <!-- 네비게이션 -->
+            <nav class="sidebar-nav-wrap">
+                <div class="nav-section">
+                    <span class="nav-section-title">관리자</span>
+                    <ul class="sidebar-nav">
+                        <li><a href="#dashboard" class="nav-link" data-page="dashboard">
+                            <span class="icon"><i class='bx bxs-home'></i></span>
+                            <span class="label">대시보드</span>
+                        </a></li>
+                        <li class="admin-only-nav" id="staffMgmtNavItem"><a href="#staff-mgmt" class="nav-link" data-page="staff-mgmt">
+                            <span class="icon"><i class='bx bx-user-pin'></i></span>
+                            <span class="label">직원 관리</span>
+                        </a></li>
+                        <li class="admin-only-nav" id="attendanceNavItem"><a href="#attendance" class="nav-link" data-page="attendance">
+                            <span class="icon"><i class='bx bx-calendar-check'></i></span>
+                            <span class="label">출근기록부</span>
+                        </a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <span class="nav-section-title">영업</span>
+                    <ul class="sidebar-nav">
+                        <li><a href="#projects" class="nav-link" data-page="projects">
+                            <span class="icon"><i class='bx bx-store'></i></span>
+                            <span class="label">프로젝트 관리</span>
+                        </a></li>
+                        <li><a href="#customers" class="nav-link" data-page="customers">
+                            <span class="icon"><i class='bx bx-receipt'></i></span>
+                            <span class="label">견적서 관리</span>
+                        </a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <span class="nav-section-title">회사</span>
+                    <ul class="sidebar-nav">
+                        <li><a href="#schedule" class="nav-link" data-page="schedule">
+                            <span class="icon"><i class='bx bx-calendar-event'></i></span>
+                            <span class="label">월간 일정표</span>
+                        </a></li>
+                        <li><a href="#leave" class="nav-link" data-page="leave">
+                            <span class="icon"><i class='bx bx-trip'></i></span>
+                            <span class="label">휴가</span>
+                        </a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <span class="nav-section-title">자료</span>
+                    <ul class="sidebar-nav">
+                        <li><a href="#customer-data" class="nav-link" data-page="customer-data">
+                            <span class="icon"><i class='bx bxs-contact'></i></span>
+                            <span class="label">고객자료</span>
+                        </a></li>
+                        <li><a href="#password-vault" class="nav-link" data-page="password-vault">
+                            <span class="icon"><i class='bx bx-lock-alt'></i></span>
+                            <span class="label">비밀번호 금고</span>
+                        </a></li>
+                        <li><a href="#archive" class="nav-link" data-page="archive">
+                            <span class="icon"><i class='bx bx-folder'></i></span>
+                            <span class="label">자료실</span>
+                        </a></li>
+                        <li><a href="#payment-check" class="nav-link" data-page="payment-check">
+                            <span class="icon"><i class='bx bx-credit-card'></i></span>
+                            <span class="label">결제 확인</span>
+                        </a></li>
+                    </ul>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <span>v1.0.0</span>
+                <span>©2025 AEROC</span>
+            </div>
         </aside>
 
         <div class="main-wrapper">
@@ -39,20 +116,16 @@
                 <button class="sidebar-toggle" id="sidebarOpen" aria-label="메뉴 열기">
                     <i class='bx bx-menu'></i>
                 </button>
-                <h1 class="page-title" id="pageTitle">대시보드 홈</h1>
+                <h1 class="page-title" id="pageTitle">대시보드</h1>
                 <div class="topbar-right">
                     <button class="theme-toggle" id="themeToggle" aria-label="테마 전환">
                         <i class='bx bx-sun' id="themeIconLight"></i>
                         <i class='bx bx-moon' id="themeIconDark"></i>
                     </button>
-                    <div class="notification-wrap">
-                        <button class="icon-btn notification-btn" id="notificationBtn" aria-label="알림">
-                            <i class='bx bx-bell'></i>
-                            <span class="badge" id="notificationBadge">0</span>
-                        </button>
-                    </div>
+                    <button class="icon-btn" id="notificationBtn" aria-label="알림">
+                        <i class='bx bx-bell'></i>
+                    </button>
                     <div class="user-profile" id="userProfile">
-                        <div class="user-avatar" id="userAvatar">A</div>
                         <div class="user-details">
                             <span id="userName">-</span>
                             <small id="userEmail">-</small>
@@ -71,124 +144,266 @@
 
             <!-- 메인 콘텐츠 -->
             <main class="main-content">
+
+                <!-- ===== 대시보드 홈 ===== -->
                 <div class="dashboard-home" id="dashboardContent">
-                    <div class="charts-grid">
-                        <div class="chart-card">
-                            <h4>일일금액</h4>
-                            <div class="chart-container">
+
+                    <!-- 페이지 헤더 -->
+                    <div class="page-header">
+                        <h2 class="dash-title">대시보드</h2>
+                        <p class="dash-subtitle">AEROC 관리자 인트라넷 현황을 한눈에 확인하세요</p>
+                    </div>
+
+                    <!-- 최근 계약 배너 -->
+                    <div class="upcoming-card">
+                        <div class="upcoming-header">
+                            <span class="upcoming-title">최근 등록된 계약</span>
+                            <a href="#projects" class="upcoming-link" id="upcomingMoreLink">전체 보기</a>
+                        </div>
+                        <div class="upcoming-item" id="recentContractBanner">
+                            <div class="upcoming-date-badge">
+                                <span class="date-day" id="bannerDay">--</span>
+                                <span class="date-month" id="bannerMonth">---</span>
+                            </div>
+                            <div class="upcoming-info">
+                                <span class="upcoming-name" id="bannerCompany">데이터 로딩 중...</span>
+                                <span class="upcoming-meta" id="bannerMeta">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 통계 카드 4개 -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon-wrap stat-blue">
+                                <i class='bx bx-folder-open'></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">진행 중인 업무</span>
+                                <span class="stat-value" id="statProgress">-</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon-wrap stat-orange">
+                                <i class='bx bx-time'></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">진행 중인 주문</span>
+                                <span class="stat-value" id="statPending">-</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon-wrap stat-teal">
+                                <i class='bx bx-clipboard'></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">이번달 계약건</span>
+                                <span class="stat-value" id="statMonthlyContracts">-</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon-wrap stat-purple">
+                                <i class='bx bx-check-circle'></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">완료 대기</span>
+                                <span class="stat-value" id="statDone">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 중단 2열: 업무 현황 + 계약 현황 -->
+                    <div class="mid-grid">
+                        <!-- 업무 현황 -->
+                        <div class="dash-card">
+                            <div class="dash-card-header">
+                                <span class="dash-card-title">업무 현황</span>
+                                <a href="#projects" class="dash-card-link">전체 보기 →</a>
+                            </div>
+                            <div class="donut-layout">
+                                <div class="donut-wrap">
+                                    <canvas id="projectStatusChart"></canvas>
+                                    <div class="donut-center">
+                                        <span class="donut-pct" id="projectCompletePct">0%</span>
+                                        <span class="donut-sub">진도</span>
+                                    </div>
+                                </div>
+                                <div class="donut-legend">
+                                    <div class="legend-row">
+                                        <span class="legend-dot" style="background:#3b82f6"></span>
+                                        <span class="legend-name">진행중</span>
+                                        <span class="legend-val" id="legendProgress">0건</span>
+                                    </div>
+                                    <div class="legend-row">
+                                        <span class="legend-dot" style="background:#22c55e"></span>
+                                        <span class="legend-name">완료</span>
+                                        <span class="legend-val" id="legendDone">0건</span>
+                                    </div>
+                                    <div class="legend-row">
+                                        <span class="legend-dot" style="background:#e5e7eb"></span>
+                                        <span class="legend-name">전체</span>
+                                        <span class="legend-val" id="legendTotal">0건</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 계약 현황 -->
+                        <div class="dash-card">
+                            <div class="dash-card-header">
+                                <span class="dash-card-title">계약률</span>
+                                <a href="#projects" class="dash-card-link">전체 보기 →</a>
+                            </div>
+                            <div class="donut-layout">
+                                <div class="donut-wrap">
+                                    <canvas id="contractRateChart"></canvas>
+                                    <div class="donut-center">
+                                        <span class="donut-pct" id="contractRatePct">0%</span>
+                                        <span class="donut-sub">계약률</span>
+                                    </div>
+                                </div>
+                                <div class="donut-legend">
+                                    <div class="legend-row">
+                                        <span class="legend-dot" style="background:#f59e0b"></span>
+                                        <span class="legend-name">최근</span>
+                                        <span class="legend-val" id="contractRecent">0건</span>
+                                    </div>
+                                    <div class="legend-row">
+                                        <span class="legend-dot" style="background:#e46033"></span>
+                                        <span class="legend-name">계약</span>
+                                        <span class="legend-val" id="contractMonth">0건</span>
+                                    </div>
+                                    <div class="legend-row">
+                                        <span class="legend-dot" style="background:#e5e7eb"></span>
+                                        <span class="legend-name">전체</span>
+                                        <span class="legend-val" id="contractTotal">0건</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 중단 2열: 주문 관리 + 일별 매출 통계 -->
+                    <div class="mid-grid">
+                        <!-- 주문 관리 (매출 현황) -->
+                        <div class="dash-card">
+                            <div class="dash-card-header">
+                                <span class="dash-card-title">주문 관리</span>
+                            </div>
+                            <div class="sales-stats">
+                                <div class="sales-row">
+                                    <div class="sales-item">
+                                        <span class="sales-label">평균 단가</span>
+                                        <span class="sales-amount accent" id="avgPrice">₩0</span>
+                                        <span class="sales-sub" id="avgPriceSub">이번달</span>
+                                    </div>
+                                    <div class="sales-item">
+                                        <span class="sales-label">총 매출 누적</span>
+                                        <span class="sales-amount red" id="cumulativeTotal">₩0</span>
+                                        <span class="sales-sub">매출 누적</span>
+                                    </div>
+                                </div>
+                                <div class="sales-divider"></div>
+                                <div class="sales-row">
+                                    <div class="sales-item">
+                                        <span class="sales-label">이번달 신규 계약</span>
+                                        <span class="sales-amount2" id="monthlyTotalAmt">₩0</span>
+                                        <span class="sales-sub"><span id="monthlyContractCnt">0</span>건 · 이번달 최근 계약</span>
+                                    </div>
+                                    <div class="sales-item">
+                                        <span class="sales-label">임무 주문</span>
+                                        <span class="sales-amount2 teal" id="pendingCount">0건</span>
+                                        <span class="sales-sub">대기 중</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 일별 매출 통계 -->
+                        <div class="dash-card">
+                            <div class="dash-card-header">
+                                <span class="dash-card-title">일별 접근 통계</span>
+                                <span class="dash-card-meta">최근 7일 매출</span>
+                            </div>
+                            <div class="chart-container-sm">
                                 <canvas id="dailySalesChart"></canvas>
                             </div>
                         </div>
-                        <div class="chart-card">
-                            <h4>이번달 금액</h4>
-                            <div class="chart-container">
-                                <canvas id="monthlySalesChart"></canvas>
+                    </div>
+
+                    <!-- 하단 3열: 정산 현황 + 최근 계약건 + 리소스 현황 -->
+                    <div class="bottom-grid">
+                        <!-- 정산 현황 -->
+                        <div class="dash-card">
+                            <div class="dash-card-header">
+                                <span class="dash-card-title">정산 현황</span>
+                                <a href="#projects" class="dash-card-link">전체 보기 →</a>
+                            </div>
+                            <div class="settlement-body">
+                                <div class="settlement-main-val" id="settlementAmount">₩0</div>
+                                <div class="settlement-main-label">이번달 매출 총액</div>
+                                <div class="settlement-change" id="settlementChange">
+                                    <i class='bx bx-minus'></i> 0% 전월 대비
+                                </div>
+                                <div class="settlement-stats">
+                                    <div class="settlement-stat">
+                                        <span class="settlement-stat-label">대기 중</span>
+                                        <span class="settlement-stat-val" id="settlementPending">0건</span>
+                                    </div>
+                                    <div class="settlement-stat">
+                                        <span class="settlement-stat-label">반영</span>
+                                        <span class="settlement-stat-val" id="settlementDone">0건</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="chart-card">
-                            <h4>누적금액</h4>
-                            <div class="chart-container">
-                                <canvas id="cumulativeSalesChart"></canvas>
+
+                        <!-- 최근 계약건 -->
+                        <div class="dash-card">
+                            <div class="dash-card-header">
+                                <span class="dash-card-title">최근 업무</span>
+                                <a href="#projects" class="dash-card-link">전체 보기 →</a>
+                            </div>
+                            <div class="recent-list" id="recentContractsList">
+                                <div class="recent-empty">데이터를 불러오는 중...</div>
+                            </div>
+                        </div>
+
+                        <!-- 영업 현황 (랭킹) -->
+                        <div class="dash-card">
+                            <div class="dash-card-header">
+                                <span class="dash-card-title">리소스 현황</span>
+                                <span class="dash-card-link" id="rankingMonthLabel">이번달</span>
+                            </div>
+                            <div class="resource-list" id="rankingList">
+                                <div class="recent-empty">데이터를 불러오는 중...</div>
                             </div>
                         </div>
                     </div>
-                    <div class="contracts-card">
-                        <h4>최근 계약건</h4>
-                        <div class="contracts-table-wrap">
-                            <table class="contracts-table">
-                                <thead>
-                                    <tr>
-                                        <th>업체명</th>
-                                        <th>담당자</th>
-                                        <th>계약일</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="contractsListBody">
-                                    <tr class="empty-row"><td colspan="3">등록된 계약이 없습니다.</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="period-contracts-card">
-                        <h4>기간별 계약건</h4>
-                        <div class="period-selector">
-                            <select id="periodYear">
-                                <!-- JS에서 채움 -->
-                            </select>
-                            <span class="period-label">년</span>
-                            <select id="periodMonth">
-                                <option value="1">1월</option>
-                                <option value="2">2월</option>
-                                <option value="3">3월</option>
-                                <option value="4">4월</option>
-                                <option value="5">5월</option>
-                                <option value="6">6월</option>
-                                <option value="7">7월</option>
-                                <option value="8">8월</option>
-                                <option value="9">9월</option>
-                                <option value="10">10월</option>
-                                <option value="11">11월</option>
-                                <option value="12">12월</option>
-                            </select>
-                            <button type="button" class="btn-primary btn-period" id="loadPeriodBtn">조회</button>
-                        </div>
-                        <div class="ranking-banner" id="rankingBanner">
-                            <div class="ranking-placeholder" id="rankingPlaceholder">연·월을 선택하고 조회를 누르세요.</div>
-                            <div class="ranking-content" id="rankingContent" style="display: none;">
-                                <span class="ranking-badge">1등</span>
-                                <span class="ranking-name" id="rankingName">-</span>
-                                <span class="ranking-amount" id="rankingAmount">총 0원</span>
-                                <span class="ranking-count" id="rankingCount">0건</span>
-                            </div>
-                        </div>
-                        <div class="period-contracts-table-wrap">
-                            <table class="contracts-table">
-                                <thead>
-                                    <tr>
-                                        <th>업체명</th>
-                                        <th>담당자</th>
-                                        <th>금액</th>
-                                        <th>계약일</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="periodContractsListBody">
-                                    <tr class="empty-row"><td colspan="4">연·월을 선택하고 조회를 누르세요.</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+
                 </div>
+                <!-- ===== /대시보드 홈 ===== -->
+
                 <div class="page-placeholder" id="pagePlaceholder" style="display: none;">
                     <p>준비 중인 페이지입니다.</p>
                 </div>
 
                 <!-- 프로젝트 관리 페이지 -->
                 <div class="projects-page" id="projectsPage" style="display: none;">
-                    <!-- 프로젝트 목록 뷰 -->
                     <div class="projects-list-view" id="projectsListView">
                     <div class="projects-layout">
-                        <!-- 좌측 카테고리 사이드바 -->
                         <aside class="projects-sidebar">
                             <div class="sidebar-section">
                                 <h4>유형별</h4>
                                 <ul class="filter-list">
                                     <li><a href="#" class="filter-link type-link active" data-type="">전체 유형</a></li>
-                                    <li><a href="#" class="filter-link type-link" data-type="기본형">기본형</a></li>
-                                    <li><a href="#" class="filter-link type-link" data-type="고급형">고급형</a></li>
-                                    <li><a href="#" class="filter-link type-link" data-type="최고급형">최고급형</a></li>
-                                </ul>
-                            </div>
-                            <div class="sidebar-section">
-                                <h4>계약기간</h4>
-                                <ul class="filter-list">
-                                    <li><a href="#" class="filter-link period-link active" data-period="">전체</a></li>
-                                    <li><a href="#" class="filter-link period-link" data-period="3">3년</a></li>
-                                    <li><a href="#" class="filter-link period-link" data-period="5">5년</a></li>
+                                    <li><a href="#" class="filter-link type-link" data-type="기본형 홈페이지">기본형 홈페이지</a></li>
+                                    <li><a href="#" class="filter-link type-link" data-type="고급형 홈페이지">고급형 홈페이지</a></li>
+                                    <li><a href="#" class="filter-link type-link" data-type="최고급형 홈페이지">최고급형 홈페이지</a></li>
                                 </ul>
                             </div>
                         </aside>
 
-                        <!-- 메인 콘텐츠 -->
                         <div class="projects-main">
                             <div class="projects-header">
                                 <h2 class="projects-title">프로젝트</h2>
@@ -227,17 +442,17 @@
                                                 <th>개발자</th>
                                                 <th>홈페이지 URL</th>
                                                 <th>유형</th>
-                                                <th>계약기간</th>
+                                                <th>관리 / 서버</th>
                                                 <th>금액</th>
-                                                <th>급 제작건</th>
                                                 <th>상태</th>
                                                 <th>등록일</th>
+                                                <th>기간</th>
                                                 <th class="col-action"></th>
                                             </tr>
                                         </thead>
                                         <tbody id="projectListBody">
                                             <tr class="empty-row" id="projectEmptyRow">
-                                                <td colspan="11">등록된 프로젝트가 없습니다.</td>
+                                                <td colspan="10">등록된 프로젝트가 없습니다.</td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -247,7 +462,7 @@
                     </div>
                     </div>
 
-                    <!-- 프로젝트 등록/편집 뷰 (풀페이지) -->
+                    <!-- 프로젝트 등록/편집 뷰 -->
                     <div class="project-form-view" id="projectFormView" style="display: none;">
                         <div class="form-view-header">
                             <h2 class="form-view-title">편집 및 추가</h2>
@@ -285,33 +500,49 @@
                                         </div>
                                         <div class="form-row">
                                             <div class="form-group form-group-full">
-                                                <label for="projectType">프로젝트 유형</label>
-                                                <select id="projectType" name="project_type_option" required>
+                                                <label for="projectType">프로젝트 유형 <span class="req">*</span></label>
+                                                <select id="projectType" name="project_type" required>
                                                     <option value="">선택하세요</option>
-                                                    <optgroup label="기본형">
-                                                        <option value="기본형_3">기본형 / 3년 / 1,980,000</option>
-                                                        <option value="기본형_5">기본형 / 5년 / 2,640,000</option>
-                                                    </optgroup>
-                                                    <optgroup label="고급형">
-                                                        <option value="고급형_3">고급형 / 3년 / 2,376,000</option>
-                                                        <option value="고급형_5">고급형 / 5년 / 3,300,000</option>
-                                                    </optgroup>
-                                                    <optgroup label="최고급형">
-                                                        <option value="최고급형">최고급형</option>
-                                                    </optgroup>
-                                                    <optgroup label="프로모션">
-                                                        <option value="프로모션_기본형">프로모션 기본형</option>
-                                                        <option value="프로모션_고급형">프로모션 고급형</option>
-                                                        <option value="프로모션_최고급형">프로모션 최고급형</option>
-                                                    </optgroup>
+                                                    <option value="기본형 홈페이지">기본형 홈페이지 (1,680,000원)</option>
+                                                    <option value="고급형 홈페이지">고급형 홈페이지 (2,076,000원)</option>
+                                                    <option value="최고급형 홈페이지">최고급형 홈페이지</option>
                                                 </select>
-                                                <div id="projectAmountWrap" class="form-group form-group-full project-amount-wrap" style="display: none; margin-top: 12px;">
-                                                    <label for="projectAmount">금액 (원)</label>
-                                                    <div class="project-amount-input-wrap">
-                                                        <input type="number" id="projectAmount" name="project_amount" class="project-amount-input" placeholder="금액을 입력하세요" min="0" step="1000" inputmode="numeric">
-                                                        <span class="project-amount-suffix">원</span>
-                                                    </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label for="contractPeriod">관리기간 <span class="req">*</span></label>
+                                                <select id="contractPeriod" name="contract_period" required>
+                                                    <option value="">선택하세요</option>
+                                                    <option value="0">해당없음</option>
+                                                    <option value="1">1년 (300,000원)</option>
+                                                    <option value="2">2년 (540,000원)</option>
+                                                    <option value="3">3년 (765,000원)</option>
+                                                    <option value="4">4년 (960,000원)</option>
+                                                    <option value="5">5년 (1,125,000원)</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="serverPeriod">서버기간 <span class="req">*</span></label>
+                                                <select id="serverPeriod" name="server_period" required>
+                                                    <option value="">선택하세요</option>
+                                                    <option value="0">해당없음</option>
+                                                    <option value="1">1년 (120,000원)</option>
+                                                    <option value="2">2년 (240,000원)</option>
+                                                    <option value="3">3년 (360,000원)</option>
+                                                    <option value="4">4년 (480,000원)</option>
+                                                    <option value="5">5년 (600,000원)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="form-group form-group-full">
+                                                <label for="projectAmount">합계 금액 (원)</label>
+                                                <div class="project-amount-input-wrap">
+                                                    <input type="number" id="projectAmount" name="project_amount" class="project-amount-input" placeholder="자동 계산 (직접 수정 가능)" min="0" step="1000" inputmode="numeric">
+                                                    <span class="project-amount-suffix">원</span>
                                                 </div>
+                                                <div id="projectPriceBreakdown" class="project-price-breakdown"></div>
                                             </div>
                                         </div>
                                     </div>
@@ -357,13 +588,752 @@
                                         </label>
                                     </div>
                                 </div>
+                                <div class="form-sidebar-section" id="attachmentSection" style="display:none;">
+                                    <h4>첨부파일</h4>
+                                    <div class="attachment-upload-wrap">
+                                        <label class="attachment-upload-btn" for="projectFileInput">
+                                            <i class='bx bx-upload'></i> 파일 선택
+                                        </label>
+                                        <input type="file" id="projectFileInput" style="display:none;" accept=".pdf,.doc,.docx,.xls,.xlsx,.hwp,.ppt,.pptx,.png,.jpg,.jpeg,.zip">
+                                        <div class="attachment-current" id="attachmentCurrent" style="display:none;">
+                                            <i class='bx bx-paperclip'></i>
+                                            <span id="attachmentCurrentName" class="attachment-name"></span>
+                                            <button type="button" class="attachment-delete-btn" id="attachmentDeleteBtn" title="삭제"><i class='bx bx-x'></i></button>
+                                        </div>
+                                        <div class="attachment-pending" id="attachmentPending" style="display:none;">
+                                            <i class='bx bx-file'></i>
+                                            <span id="attachmentPendingName" class="attachment-name"></span>
+                                            <button type="button" class="attachment-cancel-btn" id="attachmentCancelBtn" title="취소"><i class='bx bx-x'></i></button>
+                                        </div>
+                                    </div>
+                                </div>
                             </aside>
                         </div>
                         </form>
                     </div>
                 </div>
 
-                <!-- 직원 관리 페이지 -->
+                <!-- 프로젝트 상세 모달 -->
+                <div class="modal-overlay" id="projectDetailOverlay" style="display:none;">
+                    <div class="modal project-detail-modal">
+                        <div class="modal-header">
+                            <div class="project-detail-title-wrap">
+                                <span class="project-detail-company" id="pdCompanyName">-</span>
+                                <span class="status-badge" id="pdStatus">-</span>
+                            </div>
+                            <button type="button" class="modal-close" id="closeProjectDetail"><i class='bx bx-x'></i></button>
+                        </div>
+                        <div class="modal-body project-detail-body">
+                            <div class="pd-grid">
+                                <div class="pd-section">
+                                    <h4 class="pd-section-title">담당자 정보</h4>
+                                    <div class="pd-rows">
+                                        <div class="pd-row"><span class="pd-label">담당자</span><span class="pd-value" id="pdManager">-</span></div>
+                                        <div class="pd-row"><span class="pd-label">개발자</span><span class="pd-value" id="pdDeveloper">-</span></div>
+                                        <div class="pd-row"><span class="pd-label">대표자</span><span class="pd-value" id="pdRepName">-</span></div>
+                                        <div class="pd-row"><span class="pd-label">연락처</span><span class="pd-value" id="pdRepPhone">-</span></div>
+                                    </div>
+                                </div>
+                                <div class="pd-section">
+                                    <h4 class="pd-section-title">계약 정보</h4>
+                                    <div class="pd-rows">
+                                        <div class="pd-row"><span class="pd-label">유형</span><span class="pd-value" id="pdType">-</span></div>
+                                        <div class="pd-row"><span class="pd-label">관리기간</span><span class="pd-value" id="pdManage">-</span></div>
+                                        <div class="pd-row"><span class="pd-label">서버기간</span><span class="pd-value" id="pdServer">-</span></div>
+                                        <div class="pd-row"><span class="pd-label">금액</span><span class="pd-value pd-price" id="pdPrice">-</span></div>
+                                    </div>
+                                </div>
+                                <div class="pd-section">
+                                    <h4 class="pd-section-title">진행 현황</h4>
+                                    <div class="pd-rows">
+                                        <div class="pd-row"><span class="pd-label">등록일</span><span class="pd-value" id="pdCreatedAt">-</span></div>
+                                        <div class="pd-row"><span class="pd-label">완료일</span><span class="pd-value" id="pdCompletedAt">-</span></div>
+                                        <div class="pd-row"><span class="pd-label">남은 기간</span><span class="pd-value" id="pdDaysLeft">-</span></div>
+                                        <div class="pd-row"><span class="pd-label">홈페이지</span><span class="pd-value" id="pdUrl">-</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="pd-memo-wrap" id="pdMemoWrap">
+                                <h4 class="pd-section-title">메모</h4>
+                                <p class="pd-memo" id="pdMemo"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 비밀번호 금고 페이지 -->
+                <div class="vault-page" id="passwordVaultPage" style="display:none;">
+                    <div class="page-header">
+                        <h2 class="dash-title">비밀번호 금고</h2>
+                        <p class="dash-subtitle">보안이 보안망에서 보호되는 비밀번호를 확인할 수 있습니다</p>
+                    </div>
+
+                    <!-- 검색 바 -->
+                    <div class="vault-toolbar">
+                        <input type="text" class="vault-search-input" id="vaultSearchInput" placeholder="서비스명, 아이디 검색...">
+                        <select class="vault-category-select" id="vaultCategorySelect">
+                            <option value="전체">전체 카테고리</option>
+                            <option value="업무용">업무용</option>
+                            <option value="개인용">개인용</option>
+                            <option value="개발">개발</option>
+                            <option value="소셜">소셜</option>
+                            <option value="기타">기타</option>
+                        </select>
+                        <button class="btn-primary" id="vaultSearchBtn">검색</button>
+                        <button class="btn-vault-add" id="vaultAddBtn">
+                            <i class='bx bx-plus'></i> 추가
+                        </button>
+                    </div>
+
+                    <!-- 카드 그리드 -->
+                    <div class="vault-grid" id="vaultGrid">
+                        <div class="vault-empty" id="vaultEmpty">
+                            <i class='bx bx-lock-open'></i>
+                            <p>저장된 비밀번호가 없습니다.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 비밀번호 추가/수정 모달 -->
+                <div class="vault-modal-overlay" id="vaultModalOverlay" style="display:none;">
+                    <div class="vault-modal">
+                        <div class="vault-modal-header">
+                            <span class="vault-modal-title" id="vaultModalTitle">비밀번호 추가</span>
+                            <button class="vault-modal-close" id="vaultModalClose"><i class='bx bx-x'></i></button>
+                        </div>
+                        <form id="vaultForm" class="vault-modal-body">
+                            <!-- 상단: 아이콘 + 기본 정보 -->
+                            <div class="vault-form-top">
+                                <!-- 왼쪽: 아이콘 업로드 -->
+                                <div class="vault-form-icon-col">
+                                    <div class="vault-icon-preview" id="vfIconPreview" style="background:#6366f1;">
+                                        <span id="vfIconPreviewLetter">?</span>
+                                    </div>
+                                    <label class="vault-icon-upload-label" for="vfIconFile">
+                                        <i class='bx bx-upload'></i> 이미지 선택
+                                    </label>
+                                    <input type="file" id="vfIconFile" accept="image/*" style="display:none;">
+                                    <button type="button" class="vault-icon-upload-label vault-icon-remove-btn" id="vfIconRemove">
+                                        <i class='bx bx-trash'></i> 제거
+                                    </button>
+                                    <span class="vault-icon-upload-hint">PNG, JPG, SVG</span>
+                                </div>
+                                <!-- 오른쪽: 서비스명 + 카테고리 + URL -->
+                                <div class="vault-form-info-col">
+                                    <div class="vault-form-group">
+                                        <label>서비스명 <span class="req">*</span></label>
+                                        <input type="text" id="vfServiceName" placeholder="예: Google, GitHub..." required>
+                                    </div>
+                                    <div class="vault-form-group">
+                                        <label>카테고리</label>
+                                        <select id="vfCategory">
+                                            <option value="업무용">업무용</option>
+                                            <option value="개인용">개인용</option>
+                                            <option value="개발">개발</option>
+                                            <option value="소셜">소셜</option>
+                                            <option value="기타">기타</option>
+                                        </select>
+                                    </div>
+                                    <div class="vault-form-group">
+                                        <label>서비스 URL</label>
+                                        <input type="text" id="vfServiceUrl" placeholder="https://...">
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- 아이디 / 비밀번호 -->
+                            <div class="vault-form-row">
+                                <div class="vault-form-group">
+                                    <label>아이디 / 이메일</label>
+                                    <input type="text" id="vfUsername" placeholder="아이디 또는 이메일">
+                                </div>
+                                <div class="vault-form-group">
+                                    <label>비밀번호</label>
+                                    <div class="vault-pw-wrap">
+                                        <input type="password" id="vfPassword" placeholder="비밀번호">
+                                        <button type="button" class="vault-pw-toggle" id="vfPwToggle"><i class='bx bx-show'></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- 공개 설정 -->
+                            <div class="vault-form-group">
+                                <label>공개 설정</label>
+                                <div class="vault-visibility-toggle">
+                                    <button type="button" class="vault-vis-btn active" id="vfVisPrivate" data-val="0">
+                                        <i class='bx bx-lock-alt'></i> 비공개
+                                        <span class="vault-vis-desc">관리자만 열람 가능</span>
+                                    </button>
+                                    <button type="button" class="vault-vis-btn" id="vfVisPublic" data-val="1">
+                                        <i class='bx bx-globe'></i> 공개
+                                        <span class="vault-vis-desc">전체 회원 열람 가능</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                        <div class="vault-modal-footer">
+                            <button type="button" class="btn-danger" id="vaultDeleteBtn" style="display:none; margin-right:auto;">삭제</button>
+                            <button type="button" class="btn-cancel" id="vaultModalCancel">취소</button>
+                            <button type="submit" form="vaultForm" class="btn-primary" id="vaultSaveBtn">저장</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 휴가 내역 페이지 (회사탭 - 본인 휴가) -->
+                <div class="leave-page" id="leavePage" style="display:none;">
+                    <div class="page-header">
+                        <div>
+                            <h2 class="dash-title">휴가 내역</h2>
+                            <p class="dash-subtitle">본인의 휴가 신청 내역을 확인할 수 있습니다</p>
+                        </div>
+                    </div>
+
+                    <!-- 휴가 잔량 -->
+                    <div class="leave-quota-section">
+                        <h3 class="leave-quota-title" id="leaveQuotaTitle">휴가 잔량 (2026년)</h3>
+                        <div class="leave-quota-grid">
+                            <div class="leave-quota-card blue">
+                                <div class="leave-quota-val" id="leaveTotalDays">—</div>
+                                <div class="leave-quota-label">총 일 수</div>
+                            </div>
+                            <div class="leave-quota-card yellow">
+                                <div class="leave-quota-val" id="leaveUsedDays">—</div>
+                                <div class="leave-quota-label">사용 일수</div>
+                            </div>
+                            <div class="leave-quota-card green">
+                                <div class="leave-quota-val" id="leaveRemainDays">—</div>
+                                <div class="leave-quota-label">잔여 일수</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 검색 바 -->
+                    <div class="leave-toolbar">
+                        <input type="text" class="leave-search-input" id="leaveSearchInput" placeholder="사유 검색...">
+                        <select class="leave-status-select" id="leaveStatusSelect">
+                            <option value="전체">전체 상태</option>
+                            <option value="대기">대기</option>
+                            <option value="승인">승인</option>
+                            <option value="반려">반려</option>
+                        </select>
+                        <button class="btn-sm btn-outline" id="leaveSearchBtn"><i class='bx bx-search'></i> 검색</button>
+                        <button class="btn-primary btn-sm" id="leaveApplyBtn"><i class='bx bx-plus'></i> 휴가 신청</button>
+                    </div>
+
+                    <!-- 테이블 -->
+                    <div class="leave-table-wrap dash-card">
+                        <div class="leave-table-header">
+                            <span class="leave-table-count" id="leaveTableCount">휴가 내역 (0건)</span>
+                        </div>
+                        <table class="leave-table" id="leaveTable">
+                            <thead>
+                                <tr>
+                                    <th>이름</th>
+                                    <th>시작일</th>
+                                    <th>종료일</th>
+                                    <th>일수</th>
+                                    <th>상태</th>
+                                    <th>신청일</th>
+                                    <th id="leaveActionTh">취소</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaveTableBody">
+                                <tr><td colspan="7" class="leave-empty">데이터를 불러오는 중...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 휴가 신청 모달 -->
+                <div class="leave-modal-overlay" id="leaveModalOverlay" style="display:none;">
+                    <div class="leave-modal">
+                        <div class="leave-modal-header">
+                            <span class="leave-modal-title">휴가 신청</span>
+                            <button class="leave-modal-close" id="leaveModalClose"><i class='bx bx-x'></i></button>
+                        </div>
+                        <form id="leaveForm" class="leave-modal-body">
+                            <div class="vault-form-row">
+                                <div class="vault-form-group">
+                                    <label>시작일 <span class="req">*</span></label>
+                                    <input type="date" id="lfStartDate" required>
+                                </div>
+                                <div class="vault-form-group">
+                                    <label>종료일 <span class="req">*</span></label>
+                                    <input type="date" id="lfEndDate" required>
+                                </div>
+                            </div>
+                            <div class="vault-form-group">
+                                <label>일수</label>
+                                <input type="number" id="lfDays" min="0.5" step="0.5" placeholder="자동 계산" readonly style="background:var(--bg-secondary);">
+                            </div>
+                            <div class="vault-form-group">
+                                <label>사유</label>
+                                <textarea id="lfReason" rows="3" placeholder="휴가 사유를 입력하세요..."></textarea>
+                            </div>
+                        </form>
+                        <div class="leave-modal-footer">
+                            <button type="button" class="btn-cancel" id="leaveModalCancel">취소</button>
+                            <button type="submit" form="leaveForm" class="btn-primary" id="leaveSaveBtn">신청</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 견적서 관리 페이지 -->
+                <div class="customer-page" id="customersPage" style="display:none;">
+                    <div class="customer-page-header">
+                        <div>
+                            <h2 class="page-title">견적서 관리</h2>
+                            <p class="page-subtitle">업체를 등록하고 견적서를 발행합니다</p>
+                        </div>
+                    </div>
+                    <div class="customer-toolbar">
+                        <div class="customer-toolbar-left">
+                            <input type="text" id="customerSearch" class="form-control customer-search-input" placeholder="업체명, 대표, 전화번호, 주소, 담당자 검색">
+                            <button class="btn btn-primary customer-search-btn" id="customerSearchBtn">
+                                <i class='bx bx-search'></i> 검색
+                            </button>
+                        </div>
+                        <button class="btn btn-primary" id="openCustomerModal">
+                            <i class='bx bx-plus'></i> 업체 추가
+                        </button>
+                    </div>
+                    <div class="customer-count-bar">
+                        등록 업체 (<span id="customerCount">0</span>)
+                    </div>
+                    <div class="customer-table-wrap">
+                        <table class="customer-table">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>업체명</th>
+                                    <th>대표</th>
+                                    <th>전화번호</th>
+                                    <th>주소</th>
+                                    <th>담당자</th>
+                                    <th>작업</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customerTableBody">
+                                <tr><td colspan="7" class="customer-empty">업체 정보가 없습니다.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 업체 추가/수정 모달 -->
+                <div class="modal-overlay" id="customerModalOverlay" style="display:none;">
+                    <div class="modal customer-modal">
+                        <div class="modal-header">
+                            <h3 id="customerModalTitle">업체 추가</h3>
+                            <button class="modal-close" id="closeCustomerModal"><i class='bx bx-x'></i></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="customer-form-grid">
+                                <div class="form-group">
+                                    <label class="form-label">업체명 <span class="required">*</span></label>
+                                    <input type="text" id="cfName" class="form-control" placeholder="업체명">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">대표</label>
+                                    <input type="text" id="cfRepresentative" class="form-control" placeholder="대표자 이름">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">전화번호</label>
+                                    <input type="text" id="cfPhone" class="form-control" placeholder="010-0000-0000">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">담당자</label>
+                                    <input type="text" id="cfManager" class="form-control" placeholder="담당자명">
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-top:12px;">
+                                <label class="form-label">주소</label>
+                                <input type="text" id="cfAddress" class="form-control" placeholder="주소를 입력하세요">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-danger" id="customerDeleteBtn" style="display:none;">삭제</button>
+                            <div style="display:flex;gap:8px;margin-left:auto;">
+                                <button class="btn btn-secondary" id="cancelCustomerModal">취소</button>
+                                <button class="btn btn-primary" id="saveCustomerBtn">저장</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 직원 관리 페이지 (관리자 전용) -->
+                <div class="staff-mgmt-page" id="staffMgmtPage" style="display:none;">
+                    <div class="page-header">
+                        <div>
+                            <h2 class="dash-title">직원 관리</h2>
+                            <p class="dash-subtitle">직원 계정을 등록하고 관리합니다</p>
+                        </div>
+                        <button class="btn-primary btn-sm" id="staffAddBtn"><i class='bx bx-plus'></i> 직원 추가</button>
+                    </div>
+
+                    <!-- 검색 -->
+                    <div class="leave-toolbar">
+                        <input type="text" class="leave-search-input" id="staffSearchInput" placeholder="이름, 아이디, 이메일 검색...">
+                        <button class="btn-sm btn-outline" id="staffSearchBtn"><i class='bx bx-search'></i> 검색</button>
+                    </div>
+
+                    <!-- 테이블 -->
+                    <div class="leave-table-wrap dash-card">
+                        <div class="leave-table-header">
+                            <span class="leave-table-count" id="staffTableCount">직원 (0명)</span>
+                        </div>
+                        <table class="leave-table staff-table">
+                            <thead>
+                                <tr>
+                                    <th>이름</th>
+                                    <th>아이디</th>
+                                    <th>이메일</th>
+                                    <th>전화번호</th>
+                                    <th>비밀번호</th>
+                                    <th>역할</th>
+                                    <th>관리</th>
+                                </tr>
+                            </thead>
+                            <tbody id="staffTableBody">
+                                <tr><td colspan="7" class="leave-empty">로딩 중...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 직원 추가/수정 모달 -->
+                <div class="modal-overlay" id="staffModalOverlay" style="display:none;">
+                    <div class="modal" style="max-width:500px;">
+                        <div class="modal-header">
+                            <h3 id="staffModalTitle">직원 추가</h3>
+                            <button class="modal-close" id="staffModalClose"><i class='bx bx-x'></i></button>
+                        </div>
+                        <form id="staffForm" class="modal-body">
+                            <div class="vault-form-row">
+                                <div class="vault-form-group">
+                                    <label>이름</label>
+                                    <input type="text" id="sfName" placeholder="실명">
+                                </div>
+                                <div class="vault-form-group">
+                                    <label>전화번호</label>
+                                    <input type="text" id="sfPhone" placeholder="010-0000-0000">
+                                </div>
+                            </div>
+                            <div class="vault-form-group">
+                                <label>아이디 <span class="req">*</span></label>
+                                <input type="text" id="sfUsername" placeholder="로그인 아이디" required>
+                            </div>
+                            <div class="vault-form-group">
+                                <label>이메일 <span class="req">*</span></label>
+                                <input type="email" id="sfEmail" placeholder="이메일 주소" required>
+                            </div>
+                            <div class="vault-form-group">
+                                <label id="sfPasswordLabel">비밀번호 <span class="req">*</span></label>
+                                <div class="vault-pw-wrap">
+                                    <input type="password" id="sfPassword" placeholder="비밀번호 (6자 이상)">
+                                    <button type="button" class="vault-pw-toggle" id="sfPwToggle"><i class='bx bx-show'></i></button>
+                                </div>
+                                <span style="font-size:11px;color:var(--text-muted);" id="sfPasswordHint"></span>
+                            </div>
+                                <div class="vault-form-group">
+                                    <label>역할</label>
+                                    <select id="sfRole">
+                                        <option value="user">사원</option>
+                                        <option value="team_leader">팀장</option>
+                                        <option value="admin">관리자</option>
+                                    </select>
+                                </div>
+                        </form>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-danger" id="staffDeleteBtn" style="display:none;margin-right:auto;">삭제</button>
+                            <button type="button" class="btn btn-secondary" id="staffModalCancel">취소</button>
+                            <button type="submit" form="staffForm" class="btn btn-primary" id="staffSaveBtn">저장</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 월간 일정표 페이지 -->
+                <div class="schedule-page" id="schedulePage" style="display:none;">
+
+                    <div class="sch-page-header">
+                        <div>
+                            <h2 class="dash-title">월간 일정표</h2>
+                            <p class="dash-subtitle">팀 일정을 달력으로 관리합니다</p>
+                        </div>
+                        <button class="btn btn-primary btn-sm" id="schAddBtn">
+                            <i class='bx bx-plus'></i> 일정 추가
+                        </button>
+                    </div>
+
+                    <!-- 달력 툴바 -->
+                    <div class="sch-toolbar">
+                        <div class="sch-toolbar-left">
+                            <button class="att-nav-btn" id="schPrevBtn"><i class='bx bx-chevron-left'></i></button>
+                            <button class="att-nav-btn" id="schNextBtn"><i class='bx bx-chevron-right'></i></button>
+                            <button class="att-today-btn" id="schTodayBtn">오늘</button>
+                        </div>
+                        <span class="att-month-label" id="schMonthLabel">2026년 4월</span>
+                        <div style="width:80px;"></div>
+                    </div>
+
+                    <!-- 달력 그리드 -->
+                    <div class="sch-cal-wrap">
+                        <div class="sch-cal-grid" id="schCalGrid"></div>
+                    </div>
+                </div>
+
+                <!-- 일정 추가/수정 모달 -->
+                <div class="modal-overlay" id="schModalOverlay" style="display:none;">
+                    <div class="modal" style="max-width:440px;">
+                        <div class="modal-header">
+                            <h3 id="schModalTitle">일정 추가</h3>
+                            <button class="modal-close" id="schModalClose"><i class='bx bx-x'></i></button>
+                        </div>
+                        <div class="modal-body">
+                            <input type="hidden" id="schEditColor" value="#3b82f6">
+                            <div class="vault-form-group">
+                                <label>제목 <span class="req">*</span></label>
+                                <input type="text" id="schEditTitle" class="form-control" placeholder="일정 제목을 입력하세요">
+                            </div>
+                            <div class="vault-form-row" style="margin-top:10px;">
+                                <div class="vault-form-group">
+                                    <label>시작일</label>
+                                    <input type="date" id="schEditDate" class="form-control">
+                                </div>
+                                <div class="vault-form-group">
+                                    <label>종료일</label>
+                                    <input type="date" id="schEditEndDate" class="form-control">
+                                </div>
+                            </div>
+                            <div class="vault-form-group" style="margin-top:10px;">
+                                <label>색상</label>
+                                <div class="sch-color-picker" id="schColorPicker"></div>
+                            </div>
+                            <div class="vault-form-group" style="margin-top:10px;">
+                                <label>메모</label>
+                                <textarea id="schEditMemo" class="form-control" rows="2" placeholder="추가 메모"></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-danger" id="schDeleteBtn" style="display:none;margin-right:auto;">삭제</button>
+                            <button class="btn btn-secondary" id="schModalCancel">취소</button>
+                            <button class="btn btn-primary" id="schSaveBtn">저장</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 출근기록부 페이지 (관리자 전용) -->
+                <div class="attendance-page" id="attendancePage" style="display:none;">
+
+                    <!-- 상단 헤더 -->
+                    <div class="att-page-header">
+                        <div>
+                            <h2 class="dash-title">출근기록부</h2>
+                            <p class="dash-subtitle">직원별 월간 출근 현황을 관리합니다</p>
+                        </div>
+                    </div>
+
+                    <!-- 직원 범례 -->
+                    <div class="att-legend-bar" id="attLegend"></div>
+
+                    <!-- 달력 툴바 -->
+                    <div class="att-toolbar">
+                        <div class="att-toolbar-left">
+                            <button class="att-nav-btn" id="attPrevBtn"><i class='bx bx-chevron-left'></i></button>
+                            <button class="att-nav-btn" id="attNextBtn"><i class='bx bx-chevron-right'></i></button>
+                            <button class="att-today-btn" id="attTodayBtn">오늘</button>
+                        </div>
+                        <span class="att-month-label" id="attMonthLabel">2026년 4월</span>
+                        <div class="att-toolbar-right"></div>
+                    </div>
+
+                    <!-- 달력 그리드 -->
+                    <div class="att-cal-wrap">
+                        <table class="att-cal-table">
+                            <thead>
+                                <tr class="att-dow-row">
+                                    <th class="att-dow sun">일</th>
+                                    <th class="att-dow">월</th>
+                                    <th class="att-dow">화</th>
+                                    <th class="att-dow">수</th>
+                                    <th class="att-dow">목</th>
+                                    <th class="att-dow">금</th>
+                                    <th class="att-dow sat">토</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attCalBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 출근기록 추가/편집 모달 -->
+                <div class="modal-overlay" id="attModalOverlay" style="display:none;">
+                    <div class="modal" style="max-width:420px;">
+                        <div class="modal-header">
+                            <h3 id="attModalTitle">출근 기록</h3>
+                            <button class="modal-close" id="attModalClose"><i class='bx bx-x'></i></button>
+                        </div>
+                        <div class="modal-body">
+                            <input type="hidden" id="attEditUserId">
+                            <input type="hidden" id="attEditDate">
+                            <input type="hidden" id="attEditRecordId">
+                            <!-- 추가 시에만 보이는 직원 선택 -->
+                            <div class="vault-form-group" id="attModalUserRow" style="display:none;margin-bottom:12px;">
+                                <label>직원 선택</label>
+                                <select id="attModalUserSelect" class="form-control"></select>
+                            </div>
+                            <div class="vault-form-row">
+                                <div class="vault-form-group">
+                                    <label>출근 시간</label>
+                                    <input type="time" id="attEditCheckIn" class="form-control">
+                                </div>
+                                <div class="vault-form-group">
+                                    <label>퇴근 시간</label>
+                                    <input type="time" id="attEditCheckOut" class="form-control">
+                                </div>
+                            </div>
+                            <div class="vault-form-group" style="margin-top:10px;">
+                                <label>메모</label>
+                                <input type="text" id="attEditNote" class="form-control" placeholder="지각, 조퇴, 외근 등">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-danger" id="attDeleteBtn" style="display:none;margin-right:auto;">삭제</button>
+                            <button class="btn btn-secondary" id="attModalCancel">취소</button>
+                            <button class="btn btn-primary" id="attSaveBtn">저장</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 견적서 발행 페이지 -->
+                <div class="quote-page" id="quotePage" style="display:none;">
+                    <div class="quote-wrap">
+
+                        <!-- 입력 폼 패널 -->
+                        <aside class="quote-form-panel">
+                            <div class="quote-form-header">
+                                <span class="quote-form-title">견적서 발행</span>
+                                <div style="display:flex;gap:6px;">
+                                    <button id="quoteBackBtn" class="btn btn-secondary btn-sm"><i class='bx bx-arrow-back'></i> 돌아가기</button>
+                                    <button id="quoteResetBtn" class="btn btn-outline btn-sm">초기화</button>
+                                </div>
+                            </div>
+
+                            <div class="qf-section">
+                                <div class="qf-section-title">기본 정보</div>
+                                <div class="qf-group">
+                                    <label>발행 날짜</label>
+                                    <input type="date" id="qfDate" class="form-control">
+                                </div>
+                                <div class="qf-group">
+                                    <label>업체명</label>
+                                    <input type="text" id="qfCompany" class="form-control" placeholder="업체명을 입력하세요">
+                                </div>
+                                <div class="qf-group">
+                                    <label>프로젝트명</label>
+                                    <input type="text" id="qfProject" class="form-control" placeholder="프로젝트명을 입력하세요">
+                                </div>
+                            </div>
+
+                            <div class="qf-section">
+                                <div class="qf-section-title">견적 항목</div>
+                                <div class="qi-row-header">
+                                    <span>항목명</span><span>단가</span><span>수량</span><span>금액</span><span></span>
+                                </div>
+                                <div id="quoteItemRows"></div>
+                                <button id="addQuoteItemBtn" class="btn btn-outline btn-sm" style="width:100%;margin-top:8px;">
+                                    <i class='bx bx-plus'></i> 항목 추가
+                                </button>
+                            </div>
+                        </aside>
+
+                        <!-- 미리보기 패널 -->
+                        <div class="quote-preview-panel">
+                            <div class="quote-preview-toolbar">
+                                <button id="quotePdfBtn" class="btn btn-primary">
+                                    <i class='bx bx-download'></i> PDF 다운로드
+                                </button>
+                            </div>
+
+                            <!-- 실제 PDF로 변환될 문서 -->
+                            <div id="quoteDocument" class="quote-document">
+                                <div class="qd-header">
+                                    <div class="qd-company-info">
+                                        <div class="qd-logo-wrap">
+                                            <img src="/dashboard/aeroc.png" alt="AEROC" class="qd-logo" onerror="this.style.display='none'">
+                                            <div>
+                                                <div class="qd-co-name">에어록</div>
+                                                <div class="qd-co-sub">홈페이지 제작 전문</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="qd-title">견&nbsp;&nbsp;적&nbsp;&nbsp;서</div>
+                                </div>
+
+                                <div class="qd-meta-row">
+                                    <div class="qd-recipient">
+                                        <span class="qd-recipient-name" id="qdCompany">(업체명)</span>
+                                        <span class="qd-recipient-suffix">귀중</span>
+                                    </div>
+                                    <div class="qd-meta-info">
+                                        <div class="qd-meta-item">
+                                            <span class="qd-meta-label">견적번호</span>
+                                            <span class="qd-meta-val" id="qdNumber">-</span>
+                                        </div>
+                                        <div class="qd-meta-item">
+                                            <span class="qd-meta-label">발 행 일</span>
+                                            <span class="qd-meta-val" id="qdDate">-</span>
+                                        </div>
+                                        <div class="qd-meta-item">
+                                            <span class="qd-meta-label">유효기간</span>
+                                            <span class="qd-meta-val">발행일로부터 30일</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="qd-project-name" id="qdProject"></div>
+
+                                <table class="qd-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:6%">No.</th>
+                                            <th style="width:44%">항목</th>
+                                            <th style="width:18%">단가</th>
+                                            <th style="width:8%">수량</th>
+                                            <th style="width:24%">금액</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="qdItemsBody"></tbody>
+                                </table>
+
+                                <div class="qd-totals">
+                                    <div class="qd-total-row">
+                                        <span class="qd-tl">소&nbsp;&nbsp;&nbsp;&nbsp;계</span>
+                                        <span class="qd-tv" id="qdSubtotal">₩0</span>
+                                    </div>
+                                    <div class="qd-total-row">
+                                        <span class="qd-tl">부가세 (10%)</span>
+                                        <span class="qd-tv" id="qdVat">₩0</span>
+                                    </div>
+                                    <div class="qd-total-row qd-grand">
+                                        <span class="qd-tl">합&nbsp;&nbsp;&nbsp;&nbsp;계</span>
+                                        <span class="qd-tv" id="qdTotal">₩0</span>
+                                    </div>
+                                </div>
+
+                                <div class="qd-note">
+                                    <p>※ 본 견적서는 발행일로부터 30일간 유효합니다.</p>
+                                    <p>※ 세금계산서 발행이 가능합니다.</p>
+                                </div>
+
+                                <div class="qd-seal">
+                                    <div class="qd-seal-company">에어록 대표이사</div>
+                                    <img src="/dashboard/stamp.png" alt="도장" class="qd-seal-img">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 기존 직원 관리 페이지 (리소스 관리) -->
                 <div class="settings-page" id="employeesPage" style="display: none;">
                     <div class="settings-content">
                         <h2 class="settings-title">직원 관리</h2>
@@ -401,6 +1371,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="/dashboard/dashboard.js"></script>
+    <script src="https://unpkg.com/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
+    <script type="module" src="/dashboard/dashboard.js"></script>
 </body>
 </html>

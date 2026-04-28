@@ -1,5 +1,5 @@
 /**
- * 로컬 개발용 서버 (better-sqlite3)
+ * 로컬 개발용 서버 (node:sqlite)
  */
 import path from 'path';
 import fs from 'fs';

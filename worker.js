@@ -10,21 +10,34 @@ import salesRoutes from './server/routes/sales.js';
 import projectsRoutes from './server/routes/projects.js';
 import usersRoutes from './server/routes/users.js';
 import contractsRoutes from './server/routes/contracts.js';
+import passwordsRoutes from './server/routes/passwords.js';
+import vacationsRoutes from './server/routes/vacations.js';
+import attendanceRoutes from './server/routes/attendance.js';
+import schedulesRoutes from './server/routes/schedules.js';
+import customersRoutes from './server/routes/customers.js';
+import attachmentsRoutes from './server/routes/attachments.js';
 
 const app = express();
 app.use((req, res, next) => {
   req.db = env.DB;
   req.assets = env.ASSETS;
+  req.r2 = env.R2;
   next();
 });
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '30mb' }));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/sales', salesRoutes);
 app.use('/api/projects', projectsRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/contracts', contractsRoutes);
+app.use('/api/passwords', passwordsRoutes);
+app.use('/api/vacations', vacationsRoutes);
+app.use('/api/attendance', attendanceRoutes);
+app.use('/api/schedules', schedulesRoutes);
+app.use('/api/customers', customersRoutes);
+app.use('/api/attachments', attachmentsRoutes);
 
 app.get(['/', '/index.html'], (req, res) => {
   res.redirect(302, '/login/');

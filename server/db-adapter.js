@@ -1,5 +1,5 @@
 /**
- * better-sqlite3를 D1 스타일 async API로 래핑 (로컬 개발용)
+ * node:sqlite(DatabaseSync)를 D1 스타일 async API로 래핑 (로컬 개발용)
  */
 export function wrapSqlite(db) {
   return {

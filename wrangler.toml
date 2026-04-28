@@ -12,3 +12,7 @@ run_worker_first = true
 binding = "DB"
 database_name = "aeroc-admin-db"
 database_id = "0dc8dadf-f3d7-4475-a7e2-362d7dd91209"
+
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "aeroc-admin-files"

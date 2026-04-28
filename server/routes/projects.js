@@ -2,14 +2,46 @@ import express from 'express';
 import { authMiddleware } from '../middleware/auth.js';
 
 const router = express.Router();
-const PROJECT_TYPES = ['기본형', '고급형', '최고급형'];
-const CONTRACT_PERIODS = [3, 5];
+/** 목록 필터용 (신규 + 구 데이터) */
+const PROJECT_TYPES = ['기본형 홈페이지', '고급형 홈페이지', '최고급형 홈페이지', '기본형', '고급형', '최고급형'];
+const CONTRACT_PERIODS = [0, 1, 2, 3, 4, 5];
 const STATUSES = ['진행중', '완료됨', '대기중'];
 
-// 관리자: 모든 프로젝트 수정/삭제 가능. 일반 사용자: 본인이 등록한 계약만 수정/삭제 가능
-function canModifyProject(user, createdBy) {
-  if (user.role === 'admin') return true;
-  return createdBy === user.id;
+const HOMEPAGE_PRICE = {
+  '기본형 홈페이지': 1680000,
+  '고급형 홈페이지': 2076000,
+  '최고급형 홈페이지': null,
+  '기본형': 1680000,
+  '고급형': 2076000,
+  '최고급형': null
+};
+const MANAGE_PRICE = { 0: 0, 1: 300000, 2: 540000, 3: 765000, 4: 960000, 5: 1125000 };
+const SERVER_PRICE = { 0: 0, 1: 120000, 2: 240000, 3: 360000, 4: 480000, 5: 600000 };
+
+/**
+ * base가 null이면 직접 입력 금액을 사용 (manualPrice 전달)
+ * base가 숫자면 자동 계산
+ */
+function computeProjectPrice(projectType, manageYears, serverYears, manualPrice) {
+  if (!(projectType in HOMEPAGE_PRICE)) return null;
+  const base = HOMEPAGE_PRICE[projectType];
+  const my = Number(manageYears);
+  const sy = Number(serverYears);
+  const m = MANAGE_PRICE[my] ?? 0;
+  const s = SERVER_PRICE[sy] ?? 0;
+
+  // 수동 입력값이 유효하면 항상 우선 적용 (기본형/고급형도 포함)
+  const mp = typeof manualPrice === 'number' ? manualPrice : parseInt(manualPrice, 10);
+  if (!isNaN(mp) && mp >= 0) return mp;
+
+  // 수동 입력값 없을 때: 최고급형은 null(필수 입력), 나머지는 자동 계산
+  if (base === null) return null;
+  return base + m + s;
+}
+
+// 관리자만 프로젝트 수정/삭제 가능
+function canModifyProject(user) {
+  return user.role === 'admin';
 }
 
 router.get('/', authMiddleware, async (req, res) => {
@@ -19,7 +51,7 @@ router.get('/', authMiddleware, async (req, res) => {
     const isAdmin = user.role === 'admin';
     const { status, project_type, contract_period, search } = req.query;
     // All members see all projects (same as sales, contracts)
-    let sql = `SELECT p.id, p.company_name, p.representative_name, p.representative_phone, p.manager, u.name as manager_name, p.project_type, p.contract_period, p.price, p.is_urgent, p.status, p.memo, p.developer, p.website_url, p.created_by, p.created_at, p.updated_at FROM projects p LEFT JOIN users u ON u.username = p.manager WHERE 1=1`;
+    let sql = `SELECT p.id, p.company_name, p.representative_name, p.representative_phone, p.manager, u.name as manager_name, p.project_type, p.contract_period, p.server_period, p.price, p.is_urgent, p.status, p.memo, p.developer, p.website_url, p.created_by, p.created_at, p.updated_at, p.completed_at, p.contract_attachment_key, p.contract_attachment_name, p.contract_attachment_mime FROM projects p LEFT JOIN users u ON u.username = p.manager WHERE 1=1`;
     const params = [];
 
     if (status && status !== '전체' && STATUSES.includes(status)) {
@@ -27,9 +59,8 @@ router.get('/', authMiddleware, async (req, res) => {
       params.push(status);
     }
     if (project_type && PROJECT_TYPES.includes(project_type)) {
-      const promoType = `프로모션_${project_type}`;
-      sql += ` AND (project_type = ? OR project_type = ?)`;
-      params.push(project_type, promoType);
+      sql += ` AND project_type = ?`;
+      params.push(project_type);
     }
     if (contract_period && CONTRACT_PERIODS.includes(Number(contract_period))) {
       sql += ` AND contract_period = ?`;
@@ -58,59 +89,36 @@ router.get('/', authMiddleware, async (req, res) => {
   }
 });
 
-const PRICE_MAP = {
-  '기본형_3': 1980000,
-  '기본형_5': 2640000,
-  '고급형_3': 2376000,
-  '고급형_5': 3300000,
-  '최고급형': 0
-};
-
-const PROMOTION_TYPES = ['프로모션_기본형', '프로모션_고급형', '프로모션_최고급형'];
-
-function parseProjectTypeOption(opt) {
-  if (!opt) return null;
-  if (opt === '최고급형') return { project_type: '최고급형', contract_period: 0, price: 0 };
-  if (PROMOTION_TYPES.includes(opt)) return { project_type: opt, contract_period: 0, price: 0 };
-  const [type, period] = opt.split('_');
-  if (PROJECT_TYPES.includes(type) && CONTRACT_PERIODS.includes(Number(period))) {
-    const price = PRICE_MAP[opt] ?? 0;
-    return { project_type: type, contract_period: Number(period), price };
-  }
-  return null;
-}
-
 router.post('/', authMiddleware, async (req, res) => {
   try {
     const db = req.db;
-    const { company_name, representative_name, representative_phone, manager, project_type_option, project_amount, is_urgent, memo, developer, website_url } = req.body;
+    const { company_name, representative_name, representative_phone, manager, project_type, contract_period, server_period, project_amount, is_urgent, memo, developer, website_url } = req.body;
 
-    if (!company_name || !manager || !project_type_option) {
-      return res.status(400).json({ success: false, message: '모든 필수 필드를 입력해주세요.' });
+    if (!company_name || !manager || !project_type || contract_period === undefined || contract_period === '') {
+      return res.status(400).json({ success: false, message: '업체명, 담당자, 프로젝트 유형, 관리기간은 필수입니다.' });
     }
 
-    const parsed = parseProjectTypeOption(project_type_option);
-    if (!parsed) {
-      return res.status(400).json({ success: false, message: '유효한 프로젝트 유형을 선택해주세요.' });
+    const sp = server_period !== undefined && server_period !== '' ? Number(server_period) : 0;
+    if (!CONTRACT_PERIODS.includes(Number(contract_period)) || !CONTRACT_PERIODS.includes(sp)) {
+      return res.status(400).json({ success: false, message: '관리·서버 기간을 올바르게 선택해주세요.' });
     }
 
-    const { project_type, contract_period, price } = parsed;
-    const priceVal = (project_amount !== undefined && project_amount !== null && project_amount !== '')
-      ? parseInt(project_amount, 10) : (price ?? 0);
-    if (isNaN(priceVal) || priceVal < 0) {
-      return res.status(400).json({ success: false, message: '금액을 올바르게 입력해주세요.' });
+    const priceVal = computeProjectPrice(project_type.trim(), contract_period, sp, project_amount);
+    if (priceVal == null) {
+      return res.status(400).json({ success: false, message: '프로젝트 유형 또는 금액 계산에 문제가 있습니다.' });
     }
 
     const result = await db.prepare(`
-      INSERT INTO projects (company_name, representative_name, representative_phone, manager, project_type, contract_period, price, is_urgent, status, memo, developer, website_url, created_by)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, '진행중', ?, ?, ?, ?)
+      INSERT INTO projects (company_name, representative_name, representative_phone, manager, project_type, contract_period, server_period, price, is_urgent, status, memo, developer, website_url, created_by)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, '진행중', ?, ?, ?, ?)
     `).bind(
       company_name.trim(),
       (representative_name || '').trim() || null,
       (representative_phone || '').trim() || null,
       manager.trim(),
-      project_type,
-      contract_period,
+      project_type.trim(),
+      Number(contract_period),
+      sp,
       priceVal,
       is_urgent ? 1 : 0,
       (memo || '').trim() || null,
@@ -126,8 +134,9 @@ router.post('/', authMiddleware, async (req, res) => {
         id: result.meta.last_row_id,
         company_name: company_name.trim(),
         manager: manager.trim(),
-        project_type,
-        contract_period
+        project_type: project_type.trim(),
+        contract_period: Number(contract_period),
+        server_period: sp
       }
     });
   } catch (error) {
@@ -141,7 +150,7 @@ router.get('/:id', authMiddleware, async (req, res) => {
     const db = req.db;
     const { id } = req.params;
     const project = await db.prepare(`
-      SELECT p.id, p.company_name, p.representative_name, p.representative_phone, p.manager, u.name as manager_name, p.project_type, p.contract_period, p.price, p.is_urgent, p.status, p.memo, p.developer, p.website_url, p.created_at, p.updated_at
+      SELECT p.id, p.company_name, p.representative_name, p.representative_phone, p.manager, u.name as manager_name, p.project_type, p.contract_period, p.server_period, p.price, p.is_urgent, p.status, p.memo, p.developer, p.website_url, p.created_at, p.updated_at
       FROM projects p LEFT JOIN users u ON u.username = p.manager WHERE p.id = ?
     `).bind(id).first();
     if (!project) return res.status(404).json({ success: false, message: '프로젝트를 찾을 수 없습니다.' });
@@ -156,40 +165,56 @@ router.patch('/:id', authMiddleware, async (req, res) => {
   try {
     const db = req.db;
     const { id } = req.params;
-    const { status, company_name, representative_name, representative_phone, manager, project_type_option, project_amount, is_urgent, memo, developer, website_url } = req.body;
-    const project = await db.prepare('SELECT created_by FROM projects WHERE id = ?').bind(id).first();
-    if (!project) return res.status(404).json({ success: false, message: '프로젝트를 찾을 수 없습니다.' });
-    if (!canModifyProject(req.user, project.created_by)) {
-      return res.status(403).json({ success: false, message: '수정 권한이 없습니다. 본인이 등록한 계약만 수정할 수 있습니다.' });
+    const { status, company_name, representative_name, representative_phone, manager, project_type, contract_period, server_period, project_amount, is_urgent, memo, developer, website_url } = req.body;
+    if (!canModifyProject(req.user)) {
+      return res.status(403).json({ success: false, message: '관리자만 프로젝트를 수정할 수 있습니다.' });
     }
-    if (company_name !== undefined && manager !== undefined && project_type_option !== undefined) {
-      const parsed = parseProjectTypeOption(project_type_option);
-      if (!parsed) return res.status(400).json({ success: false, message: '유효한 프로젝트 유형을 선택해주세요.' });
-      const { project_type, contract_period, price } = parsed;
-      const priceVal = (project_amount !== undefined && project_amount !== null && project_amount !== '')
-        ? parseInt(project_amount, 10) : (price ?? 0);
-      if (isNaN(priceVal) || priceVal < 0) {
-        return res.status(400).json({ success: false, message: '금액을 올바르게 입력해주세요.' });
+    const project = await db.prepare('SELECT status, completed_at FROM projects WHERE id = ?').bind(id).first();
+    if (!project) return res.status(404).json({ success: false, message: '프로젝트를 찾을 수 없습니다.' });
+    if (company_name !== undefined && manager !== undefined && project_type !== undefined) {
+      const sp = server_period !== undefined && server_period !== '' ? Number(server_period) : 0;
+      const cp = Number(contract_period ?? 0);
+      if (!CONTRACT_PERIODS.includes(cp) || !CONTRACT_PERIODS.includes(sp)) {
+        return res.status(400).json({ success: false, message: '관리·서버 기간을 올바르게 선택해주세요.' });
       }
+      const priceVal = computeProjectPrice((project_type || '').trim(), cp, sp, project_amount);
+      if (priceVal == null) {
+        return res.status(400).json({ success: false, message: '프로젝트 유형 또는 금액 계산에 문제가 있습니다.' });
+      }
+      const finalStatus = status && STATUSES.includes(status) ? status : '진행중';
+      let newCompletedAt;
+      if (finalStatus === '완료됨' && project?.status !== '완료됨') {
+        newCompletedAt = 'CURRENT_TIMESTAMP';
+      } else if (finalStatus !== '완료됨') {
+        newCompletedAt = null;
+      }
+      const completedAtSql = newCompletedAt === 'CURRENT_TIMESTAMP'
+        ? ', completed_at=CURRENT_TIMESTAMP'
+        : (newCompletedAt === null && finalStatus !== '완료됨' ? ', completed_at=NULL' : '');
       await db.prepare(`
-        UPDATE projects SET company_name=?, representative_name=?, representative_phone=?, manager=?, project_type=?, contract_period=?, price=?, is_urgent=?, memo=?, developer=?, website_url=?, status=?, updated_at=CURRENT_TIMESTAMP WHERE id=?
+        UPDATE projects SET company_name=?, representative_name=?, representative_phone=?, manager=?, project_type=?, contract_period=?, server_period=?, price=?, is_urgent=?, memo=?, developer=?, website_url=?, status=?${completedAtSql}, updated_at=CURRENT_TIMESTAMP WHERE id=?
       `).bind(
         (company_name || '').trim(),
         (representative_name || '').trim() || null,
         (representative_phone || '').trim() || null,
         (manager || '').trim(),
-        parsed.project_type,
-        parsed.contract_period,
+        (project_type || '').trim(),
+        cp,
+        sp,
         priceVal,
         is_urgent ? 1 : 0,
         (memo || '').trim() || null,
         (developer || '').trim() || null,
         (website_url || '').trim() || null,
-        status && STATUSES.includes(status) ? status : '진행중',
+        finalStatus,
         id
       ).run();
     } else if (status && STATUSES.includes(status)) {
-      await db.prepare('UPDATE projects SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').bind(status, id).run();
+      if (status === '완료됨') {
+        await db.prepare('UPDATE projects SET status = ?, completed_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?').bind(status, id).run();
+      } else {
+        await db.prepare('UPDATE projects SET status = ?, completed_at = NULL, updated_at = CURRENT_TIMESTAMP WHERE id = ?').bind(status, id).run();
+      }
     }
     res.json({ success: true, message: '수정되었습니다.' });
   } catch (error) {
@@ -202,11 +227,11 @@ router.delete('/:id', authMiddleware, async (req, res) => {
   try {
     const db = req.db;
     const { id } = req.params;
-    const project = await db.prepare('SELECT created_by FROM projects WHERE id = ?').bind(id).first();
-    if (!project) return res.status(404).json({ success: false, message: '프로젝트를 찾을 수 없습니다.' });
-    if (!canModifyProject(req.user, project.created_by)) {
-      return res.status(403).json({ success: false, message: '삭제 권한이 없습니다. 본인이 등록한 계약만 삭제할 수 있습니다.' });
+    if (!canModifyProject(req.user)) {
+      return res.status(403).json({ success: false, message: '관리자만 프로젝트를 삭제할 수 있습니다.' });
     }
+    const project = await db.prepare('SELECT id FROM projects WHERE id = ?').bind(id).first();
+    if (!project) return res.status(404).json({ success: false, message: '프로젝트를 찾을 수 없습니다.' });
     await db.prepare('DELETE FROM projects WHERE id = ?').bind(id).run();
     res.json({ success: true, message: '프로젝트가 삭제되었습니다.' });
   } catch (error) {

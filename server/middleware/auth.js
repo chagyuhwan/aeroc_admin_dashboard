@@ -4,11 +4,14 @@ const JWT_SECRET = process.env.JWT_SECRET || 'AEROC-admin-secret-key-change-in-p
 
 export async function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  // Authorization 헤더 없으면 쿼리 파라미터에서도 토큰 허용 (파일 직접 열기용)
+  const token = authHeader?.startsWith('Bearer ')
+    ? authHeader.split(' ')[1]
+    : (req.query?.token || null);
+
+  if (!token) {
     return res.status(401).json({ success: false, message: '인증이 필요합니다.' });
   }
-
-  const token = authHeader.split(' ')[1];
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     const row = await req.db.prepare('SELECT id, username, email, role FROM users WHERE id = ?').bind(decoded.id).first();

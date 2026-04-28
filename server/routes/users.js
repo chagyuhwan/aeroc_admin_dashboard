@@ -33,16 +33,70 @@ router.get('/', authMiddleware, async (req, res) => {
       return res.status(403).json({ success: false, message: '관리자만 접근할 수 있습니다.' });
     }
     const { results: users } = await req.db.prepare(`
-      SELECT u.id, u.username, u.email, u.name, u.phone, u.role, u.team_leader_id, t.username as team_leader_name
+      SELECT u.id, u.username, u.email, u.name, u.phone, u.role, u.plain_password, u.team_leader_id, t.username as team_leader_name
       FROM users u
       LEFT JOIN users t ON u.team_leader_id = t.id
-      WHERE u.role != 'admin'
-      ORDER BY u.role DESC, u.username
+      ORDER BY CASE u.role WHEN 'admin' THEN 0 WHEN 'team_leader' THEN 1 ELSE 2 END, u.username
     `).all();
     const { results: teamLeaders } = await req.db.prepare('SELECT id, username FROM users WHERE role = ?').bind('team_leader').all();
     res.json({ success: true, users, teamLeaders });
   } catch (error) {
     console.error('사용자 목록 조회 오류:', error);
+    res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
+  }
+});
+
+// 직원 등록 (관리자)
+router.post('/', authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: '관리자만 접근할 수 있습니다.' });
+    const { username, email, password, name, phone, role } = req.body;
+    if (!username || !email || !password) return res.status(400).json({ success: false, message: '아이디, 이메일, 비밀번호는 필수입니다.' });
+    const exists = await req.db.prepare('SELECT id FROM users WHERE username = ? OR email = ?').bind(username, email).first();
+    if (exists) return res.status(409).json({ success: false, message: '이미 사용 중인 아이디 또는 이메일입니다.' });
+    const hashed = bcrypt.hashSync(password, 10);
+    const result = await req.db.prepare(`
+      INSERT INTO users (username, email, password, plain_password, name, phone, role)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).bind(username, email, hashed, password, name || null, phone || null, role || 'user').run();
+    res.json({ success: true, id: result.meta.last_row_id });
+  } catch (err) {
+    console.error('직원 등록 오류:', err);
+    res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
+  }
+});
+
+// 직원 수정 (관리자)
+router.patch('/:id', authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: '관리자만 접근할 수 있습니다.' });
+    const { id } = req.params;
+    const { name, email, phone, role, password } = req.body;
+    const target = await req.db.prepare('SELECT id FROM users WHERE id = ?').bind(id).first();
+    if (!target) return res.status(404).json({ success: false, message: '사용자를 찾을 수 없습니다.' });
+    if (name !== undefined) await req.db.prepare('UPDATE users SET name = ? WHERE id = ?').bind(name || null, id).run();
+    if (email !== undefined) await req.db.prepare('UPDATE users SET email = ? WHERE id = ?').bind(email, id).run();
+    if (phone !== undefined) await req.db.prepare('UPDATE users SET phone = ? WHERE id = ?').bind(phone || null, id).run();
+    if (role !== undefined) await req.db.prepare('UPDATE users SET role = ? WHERE id = ?').bind(role, id).run();
+    if (password) {
+      const hashed = bcrypt.hashSync(password, 10);
+      await req.db.prepare('UPDATE users SET password = ?, plain_password = ? WHERE id = ?').bind(hashed, password, id).run();
+    }
+    res.json({ success: true, message: '수정되었습니다.' });
+  } catch (err) {
+    console.error('직원 수정 오류:', err);
+    res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
+  }
+});
+
+// 직원 삭제 (관리자)
+router.delete('/:id', authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: '관리자만 접근할 수 있습니다.' });
+    await req.db.prepare('DELETE FROM users WHERE id = ?').bind(req.params.id).run();
+    res.json({ success: true });
+  } catch (err) {
+    console.error('직원 삭제 오류:', err);
     res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
   }
 });
@@ -141,7 +195,7 @@ router.patch('/:id/password', authMiddleware, async (req, res) => {
     const target = await req.db.prepare('SELECT id FROM users WHERE id = ?').bind(id).first();
     if (!target) return res.status(404).json({ success: false, message: '사용자를 찾을 수 없습니다.' });
     const hashed = bcrypt.hashSync(password, 10);
-    await req.db.prepare('UPDATE users SET password = ? WHERE id = ?').bind(hashed, id).run();
+    await req.db.prepare('UPDATE users SET password = ?, plain_password = ? WHERE id = ?').bind(hashed, password, id).run();
     res.json({ success: true, message: '비밀번호가 변경되었습니다.' });
   } catch (error) {
     console.error('비밀번호 변경 오류:', error);
