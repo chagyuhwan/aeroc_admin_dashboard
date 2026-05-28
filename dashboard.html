@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="/dashboard/dashboard.css">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
 <body>
     <div class="dashboard-layout">
@@ -1054,33 +1055,79 @@
                             <div class="cd-form-panel">
                                 <div class="cd-form-section">
                                     <div class="cd-form-section-title"><i class='bx bx-edit'></i> 계약서 제목</div>
-                                    <div class="form-group">
-                                        <input type="text" id="cdContractTitle" class="form-control" placeholder="예: 홈페이지 제작 계약서, 디지털 마케팅 계약서" value="계약서">
-                                    </div>
+                                    <input type="text" id="cdContractTitle" class="form-control" placeholder="홈페이지 제작 계약서" value="홈페이지 제작 계약서">
                                 </div>
                                 <div class="cd-form-section">
-                                    <div class="cd-form-section-title"><i class='bx bx-buildings'></i> 갑 (위탁자) 정보</div>
+                                    <div class="cd-form-section-title"><i class='bx bx-user-circle'></i> 고객 기본사항</div>
                                     <div class="form-group">
-                                        <label class="form-label">업체명 <span class="required">*</span></label>
-                                        <input type="text" id="cdClientName" class="form-control" placeholder="업체명">
+                                        <label class="form-label">상호 <span class="required">*</span></label>
+                                        <input type="text" id="cdClientName" class="form-control" placeholder="업체 상호">
                                     </div>
                                     <div class="customer-form-grid" style="margin-top:10px;">
                                         <div class="form-group">
-                                            <label class="form-label">대표자</label>
-                                            <input type="text" id="cdClientRep" class="form-control" placeholder="대표자명">
+                                            <label class="form-label">대표자명</label>
+                                            <input type="text" id="cdClientRep" class="form-control" placeholder="홍길동">
                                         </div>
+                                        <div class="form-group">
+                                            <label class="form-label">휴대폰번호</label>
+                                            <input type="text" id="cdClientPhone" class="form-control" placeholder="010-0000-0000">
+                                        </div>
+                                    </div>
+                                    <div class="customer-form-grid" style="margin-top:10px;">
                                         <div class="form-group">
                                             <label class="form-label">사업자등록번호</label>
                                             <input type="text" id="cdClientBizNo" class="form-control" placeholder="000-00-00000">
                                         </div>
+                                        <div class="form-group">
+                                            <label class="form-label">주민등록번호</label>
+                                            <input type="text" id="cdClientIdNo" class="form-control" placeholder="000000-0000000">
+                                        </div>
                                     </div>
                                     <div class="form-group" style="margin-top:10px;">
-                                        <label class="form-label">주소</label>
+                                        <label class="form-label">사업장주소</label>
                                         <input type="text" id="cdClientAddress" class="form-control" placeholder="사업장 주소">
                                     </div>
                                 </div>
                                 <div class="cd-form-section">
-                                    <div class="cd-form-section-title"><i class='bx bx-building'></i> 을 (수급인, 에어록) 정보</div>
+                                    <div class="cd-form-section-title"><i class='bx bx-desktop'></i> 홈페이지 유형</div>
+                                    <div class="cd-type-radio-group">
+                                        <label class="cd-type-radio">
+                                            <input type="radio" name="homepageType" id="cdTypeAdv" value="고급형" checked>
+                                            <span class="cd-type-label adv">고급형 홈페이지</span>
+                                        </label>
+                                        <label class="cd-type-radio">
+                                            <input type="radio" name="homepageType" id="cdTypeBasic" value="기본형">
+                                            <span class="cd-type-label basic">기본형 홈페이지</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="cd-form-section">
+                                    <div class="cd-form-section-title"><i class='bx bx-won'></i> 계약 금액 · 기간</div>
+                                    <div class="form-group">
+                                        <label class="form-label">계약 금액 (원)</label>
+                                        <input type="number" id="cdAmount" class="form-control" placeholder="0" min="0">
+                                    </div>
+                                    <div class="customer-form-grid" style="margin-top:10px;">
+                                        <div class="form-group">
+                                            <label class="form-label">계약 시작일</label>
+                                            <input type="date" id="cdStartDate" class="form-control">
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">계약 종료일</label>
+                                            <input type="date" id="cdEndDate" class="form-control">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="cd-form-section">
+                                    <div class="cd-form-section-title"><i class='bx bx-file-blank'></i> 계약 내용 <span style="font-size:11px;font-weight:400;color:var(--text-muted)">수정 가능</span></div>
+                                    <textarea id="cdContractBody" class="form-control" rows="10" placeholder="계약 조항 내용을 입력하세요"></textarea>
+                                </div>
+                                <div class="cd-form-section">
+                                    <div class="cd-form-section-title"><i class='bx bx-note'></i> 특약 사항</div>
+                                    <textarea id="cdSpecialTerms" class="form-control" rows="3" placeholder="특약 사항 (없으면 비워두세요)"></textarea>
+                                </div>
+                                <div class="cd-form-section">
+                                    <div class="cd-form-section-title"><i class='bx bx-building'></i> 에어록 (을) 정보</div>
                                     <div class="customer-form-grid">
                                         <div class="form-group">
                                             <label class="form-label">대표자</label>
@@ -1097,41 +1144,8 @@
                                     </div>
                                 </div>
                                 <div class="cd-form-section">
-                                    <div class="cd-form-section-title"><i class='bx bx-briefcase'></i> 계약 내용</div>
-                                    <div class="form-group">
-                                        <label class="form-label">서비스명 <span class="required">*</span></label>
-                                        <input type="text" id="cdServiceTitle" class="form-control" placeholder="예: 홈페이지 제작 및 유지보수">
-                                    </div>
-                                    <div class="form-group" style="margin-top:10px;">
-                                        <label class="form-label">서비스 상세 내용</label>
-                                        <textarea id="cdServiceDetail" class="form-control" rows="4" placeholder="용역 서비스 상세 내용을 입력하세요"></textarea>
-                                    </div>
-                                    <div class="form-group" style="margin-top:10px;">
-                                        <label class="form-label">계약 금액 (원)</label>
-                                        <input type="number" id="cdAmount" class="form-control" placeholder="0" min="0">
-                                    </div>
-                                    <div class="customer-form-grid" style="margin-top:10px;">
-                                        <div class="form-group">
-                                            <label class="form-label">계약 시작일</label>
-                                            <input type="date" id="cdStartDate" class="form-control">
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label">계약 종료일</label>
-                                            <input type="date" id="cdEndDate" class="form-control">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="cd-form-section">
-                                    <div class="cd-form-section-title"><i class='bx bx-note'></i> 특약 사항</div>
-                                    <div class="form-group">
-                                        <textarea id="cdSpecialTerms" class="form-control" rows="4" placeholder="특약 사항을 입력하세요 (없으면 비워두세요)"></textarea>
-                                    </div>
-                                </div>
-                                <div class="cd-form-section">
-                                    <div class="cd-form-section-title"><i class='bx bx-calendar'></i> 계약일</div>
-                                    <div class="form-group">
-                                        <input type="date" id="cdContractDate" class="form-control">
-                                    </div>
+                                    <div class="cd-form-section-title"><i class='bx bx-calendar-check'></i> 계약일 <span class="required">*</span></div>
+                                    <input type="date" id="cdContractDate" class="form-control">
                                 </div>
                             </div>
 
@@ -1140,84 +1154,88 @@
                                 <div class="cd-preview-label">미리보기</div>
                                 <div class="cd-preview-wrap">
                                     <div id="contractDocument" class="cd-document">
-                                        <h1 class="cd-doc-title" id="cdPvTitle">계 약 서</h1>
-                                        <table class="cd-parties-table">
-                                            <thead>
-                                                <tr>
-                                                    <th colspan="2">갑 (위탁자)</th>
-                                                    <th colspan="2">을 (수급인)</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                    <td class="cd-field-label">상호</td>
-                                                    <td id="cdPvClientName">-</td>
-                                                    <td class="cd-field-label">상호</td>
-                                                    <td>에어록</td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="cd-field-label">대표자</td>
-                                                    <td id="cdPvClientRep">-</td>
-                                                    <td class="cd-field-label">대표자</td>
-                                                    <td id="cdPvAerocRep">-</td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="cd-field-label">사업자번호</td>
-                                                    <td id="cdPvClientBizNo">-</td>
-                                                    <td class="cd-field-label">사업자번호</td>
-                                                    <td id="cdPvAerocBizNo">-</td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="cd-field-label">주소</td>
-                                                    <td id="cdPvClientAddress">-</td>
-                                                    <td class="cd-field-label">주소</td>
-                                                    <td id="cdPvAerocAddress">-</td>
-                                                </tr>
-                                            </tbody>
+
+                                        <!-- 제목 -->
+                                        <h1 class="cd-doc-title" id="cdPvTitle">홈 페 이 지 제 작 계 약 서</h1>
+
+                                        <!-- 고객 기본사항 -->
+                                        <div class="cd-section-label">고객 기본사항</div>
+                                        <table class="cd-info-table">
+                                            <tr>
+                                                <td class="cd-field-label">상&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;호</td>
+                                                <td id="cdPvClientName"></td>
+                                                <td class="cd-field-label">대 표 자 명</td>
+                                                <td id="cdPvClientRep"></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="cd-field-label">휴대폰번호</td>
+                                                <td id="cdPvClientPhone"></td>
+                                                <td class="cd-field-label">사업자등록번호</td>
+                                                <td id="cdPvClientBizNo"></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="cd-field-label">주민등록번호</td>
+                                                <td id="cdPvClientIdNo"></td>
+                                                <td class="cd-field-label">계&nbsp;&nbsp;약&nbsp;&nbsp;금</td>
+                                                <td id="cdPvAmount"></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="cd-field-label">사업장주소</td>
+                                                <td colspan="3" id="cdPvClientAddress"></td>
+                                            </tr>
                                         </table>
-                                        <p class="cd-doc-intro">
-                                            위 당사자는 아래와 같이 용역계약을 체결하고 이를 성실히 이행할 것을 약정한다.
-                                        </p>
-                                        <div class="cd-article">
-                                            <div class="cd-article-title">제1조 (목적)</div>
-                                            <p class="cd-article-body">본 계약은 을이 갑으로부터 위탁받은 <span id="cdPvServiceTitle" class="cd-highlight">[서비스명]</span>에 관한 용역 서비스를 성실히 수행함을 목적으로 한다.</p>
+
+                                        <!-- 홈페이지 유형 -->
+                                        <div class="cd-section-label">제작 유형 선택</div>
+                                        <div class="cd-type-select-display">
+                                            <div class="cd-type-option-display" id="cdPvTypeAdv">
+                                                <span class="cd-chk" id="cdPvChkAdv">☐</span>
+                                                <span>고급형 홈페이지</span>
+                                            </div>
+                                            <div class="cd-type-option-display" id="cdPvTypeBasic">
+                                                <span class="cd-chk" id="cdPvChkBasic">☐</span>
+                                                <span>기본형 홈페이지</span>
+                                            </div>
                                         </div>
-                                        <div class="cd-article">
-                                            <div class="cd-article-title">제2조 (용역 내용)</div>
-                                            <p class="cd-article-body" id="cdPvServiceDetail">-</p>
+
+                                        <!-- 계약 기간 -->
+                                        <div class="cd-period-row" id="cdPvPeriodRow">
+                                            <span class="cd-period-label">계약기간</span>
+                                            <span id="cdPvPeriod">-</span>
                                         </div>
-                                        <div class="cd-article">
-                                            <div class="cd-article-title">제3조 (계약 금액)</div>
-                                            <p class="cd-article-body">금 <span id="cdPvAmount" class="cd-highlight">-</span>원정 (부가세 포함)</p>
+
+                                        <!-- 계약 내용 본문 -->
+                                        <div class="cd-section-label" style="margin-top:18px;">계약 내용</div>
+                                        <div class="cd-body-text" id="cdPvBody"></div>
+
+                                        <!-- 특약 사항 -->
+                                        <div id="cdPvSpecialWrap">
+                                            <div class="cd-section-label">특약 사항</div>
+                                            <div class="cd-body-text" id="cdPvSpecialTerms"></div>
                                         </div>
-                                        <div class="cd-article">
-                                            <div class="cd-article-title">제4조 (계약 기간)</div>
-                                            <p class="cd-article-body"><span id="cdPvPeriod">-</span></p>
-                                        </div>
-                                        <div class="cd-article" id="cdPvSpecialArticle">
-                                            <div class="cd-article-title">제5조 (특약 사항)</div>
-                                            <p class="cd-article-body" id="cdPvSpecialTerms">-</p>
-                                        </div>
+
+                                        <!-- 서명/날인 -->
                                         <p class="cd-doc-closing">
                                             본 계약을 증명하기 위하여 계약서 2통을 작성하여 갑과 을이 서명·날인한 후 각 1통씩 보관한다.
                                         </p>
-                                        <div class="cd-contract-date">계약 체결일 : <span id="cdPvContractDate">-</span></div>
+                                        <div class="cd-contract-date">계약 체결일 : <span id="cdPvContractDate">____년 ____월 ____일</span></div>
                                         <div class="cd-sig-row">
                                             <div class="cd-sig-block">
                                                 <div class="cd-sig-title">갑 (위탁자)</div>
-                                                <div class="cd-sig-line">상&nbsp;&nbsp;&nbsp;호 : <span id="cdSigClientName">-</span></div>
-                                                <div class="cd-sig-line">대표자 : <span id="cdSigClientRep">-</span> (인)</div>
+                                                <div class="cd-sig-line">상&nbsp;&nbsp;&nbsp;호 : <span id="cdSigClientName"></span></div>
+                                                <div class="cd-sig-line">대표자 : <span id="cdSigClientRep"></span> (인)</div>
                                                 <div class="cd-sig-stamp"></div>
                                             </div>
                                             <div class="cd-sig-block">
                                                 <div class="cd-sig-title">을 (수급인)</div>
                                                 <div class="cd-sig-line">상&nbsp;&nbsp;&nbsp;호 : 에어록</div>
-                                                <div class="cd-sig-line">대표자 : <span id="cdSigAerocRep">-</span> (인)</div>
+                                                <div class="cd-sig-line">대표자 : <span id="cdSigAerocRep"></span> (인)</div>
                                                 <div class="cd-sig-stamp">
                                                     <img src="/dashboard/stamp.png" alt="도장" class="cd-stamp-img">
                                                 </div>
                                             </div>
                                         </div>
+
                                     </div>
                                 </div>
                             </div>

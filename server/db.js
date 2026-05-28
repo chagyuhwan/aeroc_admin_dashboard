@@ -240,13 +240,17 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS contract_docs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     contract_no TEXT UNIQUE NOT NULL,
-    contract_title TEXT NOT NULL DEFAULT '계약서',
+    contract_title TEXT NOT NULL DEFAULT '홈페이지 제작 계약서',
     client_name TEXT NOT NULL,
     client_rep TEXT,
+    client_phone TEXT,
     client_biz_no TEXT,
+    client_id_no TEXT,
     client_address TEXT,
-    service_title TEXT NOT NULL,
+    homepage_type TEXT DEFAULT '고급형',
+    service_title TEXT,
     service_detail TEXT,
+    contract_body TEXT,
     amount INTEGER DEFAULT 0,
     start_date DATE,
     end_date DATE,
@@ -260,7 +264,11 @@ db.exec(`
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )
 `);
-// contract_title 컬럼 마이그레이션 (기존 DB 호환)
+// 마이그레이션 (기존 DB 호환)
 try { db.exec(`ALTER TABLE contract_docs ADD COLUMN contract_title TEXT NOT NULL DEFAULT '계약서'`); } catch(e) {}
+try { db.exec(`ALTER TABLE contract_docs ADD COLUMN client_phone TEXT`); } catch(e) {}
+try { db.exec(`ALTER TABLE contract_docs ADD COLUMN client_id_no TEXT`); } catch(e) {}
+try { db.exec(`ALTER TABLE contract_docs ADD COLUMN homepage_type TEXT DEFAULT '고급형'`); } catch(e) {}
+try { db.exec(`ALTER TABLE contract_docs ADD COLUMN contract_body TEXT`); } catch(e) {}
 
 export default db;

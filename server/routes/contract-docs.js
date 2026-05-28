@@ -16,6 +16,8 @@ function genContractNo() {
   return `CT-${ymd}-${String(Math.floor(Math.random() * 900) + 100)}`;
 }
 
+function trim(v) { return (v || '').trim() || null; }
+
 // 목록
 router.get('/', authMiddleware, adminOnly, async (req, res) => {
   try {
@@ -29,7 +31,7 @@ router.get('/', authMiddleware, adminOnly, async (req, res) => {
     `;
     const params = [];
     if (q?.trim()) {
-      sql += ` AND (d.client_name LIKE ? OR d.service_title LIKE ? OR d.contract_no LIKE ?)`;
+      sql += ` AND (d.client_name LIKE ? OR d.contract_no LIKE ? OR d.homepage_type LIKE ?)`;
       const like = `%${q.trim()}%`;
       params.push(like, like, like);
     }
@@ -38,7 +40,6 @@ router.get('/', authMiddleware, adminOnly, async (req, res) => {
     const { results: docs } = params.length
       ? await stmt.bind(...params).all()
       : await stmt.all();
-
     res.json({ success: true, docs: docs ?? [] });
   } catch (err) {
     console.error('계약서 목록 오류:', err);
@@ -63,39 +64,35 @@ router.post('/', authMiddleware, adminOnly, async (req, res) => {
   try {
     const db = req.db;
     const {
-      contract_title, client_name, client_rep, client_biz_no, client_address,
-      service_title, service_detail, amount, start_date, end_date,
-      special_terms, contract_date, aeroc_rep, aeroc_biz_no, aeroc_address
+      contract_title, client_name, client_rep, client_phone, client_biz_no,
+      client_id_no, client_address, homepage_type, contract_body,
+      amount, start_date, end_date, special_terms, contract_date,
+      aeroc_rep, aeroc_biz_no, aeroc_address
     } = req.body;
 
-    if (!client_name?.trim()) return res.status(400).json({ success: false, message: '업체명은 필수입니다.' });
-    if (!service_title?.trim()) return res.status(400).json({ success: false, message: '서비스명은 필수입니다.' });
+    if (!client_name?.trim()) return res.status(400).json({ success: false, message: '상호는 필수입니다.' });
     if (!contract_date) return res.status(400).json({ success: false, message: '계약일은 필수입니다.' });
 
     const contract_no = genContractNo();
     const result = await db.prepare(`
       INSERT INTO contract_docs
-        (contract_no, contract_title, client_name, client_rep, client_biz_no, client_address,
-         service_title, service_detail, amount, start_date, end_date,
-         special_terms, contract_date, aeroc_rep, aeroc_biz_no, aeroc_address, created_by)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        (contract_no, contract_title, client_name, client_rep, client_phone, client_biz_no,
+         client_id_no, client_address, homepage_type, contract_body,
+         amount, start_date, end_date, special_terms, contract_date,
+         aeroc_rep, aeroc_biz_no, aeroc_address, created_by)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     `).bind(
       contract_no,
-      (contract_title || '계약서').trim(),
+      trim(contract_title) || '홈페이지 제작 계약서',
       client_name.trim(),
-      (client_rep || '').trim() || null,
-      (client_biz_no || '').trim() || null,
-      (client_address || '').trim() || null,
-      service_title.trim(),
-      (service_detail || '').trim() || null,
+      trim(client_rep), trim(client_phone), trim(client_biz_no),
+      trim(client_id_no), trim(client_address),
+      trim(homepage_type) || '고급형',
+      trim(contract_body),
       parseInt(amount) || 0,
-      start_date || null,
-      end_date || null,
-      (special_terms || '').trim() || null,
-      contract_date,
-      (aeroc_rep || '').trim() || null,
-      (aeroc_biz_no || '').trim() || null,
-      (aeroc_address || '').trim() || null,
+      start_date || null, end_date || null,
+      trim(special_terms), contract_date,
+      trim(aeroc_rep), trim(aeroc_biz_no), trim(aeroc_address),
       req.user.id
     ).run();
 
@@ -114,38 +111,34 @@ router.patch('/:id', authMiddleware, adminOnly, async (req, res) => {
     if (!existing) return res.status(404).json({ success: false, message: '계약서를 찾을 수 없습니다.' });
 
     const {
-      contract_title, client_name, client_rep, client_biz_no, client_address,
-      service_title, service_detail, amount, start_date, end_date,
-      special_terms, contract_date, aeroc_rep, aeroc_biz_no, aeroc_address
+      contract_title, client_name, client_rep, client_phone, client_biz_no,
+      client_id_no, client_address, homepage_type, contract_body,
+      amount, start_date, end_date, special_terms, contract_date,
+      aeroc_rep, aeroc_biz_no, aeroc_address
     } = req.body;
 
-    if (!client_name?.trim()) return res.status(400).json({ success: false, message: '업체명은 필수입니다.' });
-    if (!service_title?.trim()) return res.status(400).json({ success: false, message: '서비스명은 필수입니다.' });
+    if (!client_name?.trim()) return res.status(400).json({ success: false, message: '상호는 필수입니다.' });
     if (!contract_date) return res.status(400).json({ success: false, message: '계약일은 필수입니다.' });
 
     await db.prepare(`
       UPDATE contract_docs
-      SET contract_title=?, client_name=?, client_rep=?, client_biz_no=?, client_address=?,
-          service_title=?, service_detail=?, amount=?, start_date=?, end_date=?,
-          special_terms=?, contract_date=?, aeroc_rep=?, aeroc_biz_no=?, aeroc_address=?,
+      SET contract_title=?, client_name=?, client_rep=?, client_phone=?, client_biz_no=?,
+          client_id_no=?, client_address=?, homepage_type=?, contract_body=?,
+          amount=?, start_date=?, end_date=?, special_terms=?, contract_date=?,
+          aeroc_rep=?, aeroc_biz_no=?, aeroc_address=?,
           updated_at=CURRENT_TIMESTAMP
       WHERE id=?
     `).bind(
-      (contract_title || '계약서').trim(),
+      trim(contract_title) || '홈페이지 제작 계약서',
       client_name.trim(),
-      (client_rep || '').trim() || null,
-      (client_biz_no || '').trim() || null,
-      (client_address || '').trim() || null,
-      service_title.trim(),
-      (service_detail || '').trim() || null,
+      trim(client_rep), trim(client_phone), trim(client_biz_no),
+      trim(client_id_no), trim(client_address),
+      trim(homepage_type) || '고급형',
+      trim(contract_body),
       parseInt(amount) || 0,
-      start_date || null,
-      end_date || null,
-      (special_terms || '').trim() || null,
-      contract_date,
-      (aeroc_rep || '').trim() || null,
-      (aeroc_biz_no || '').trim() || null,
-      (aeroc_address || '').trim() || null,
+      start_date || null, end_date || null,
+      trim(special_terms), contract_date,
+      trim(aeroc_rep), trim(aeroc_biz_no), trim(aeroc_address),
       req.params.id
     ).run();
 
