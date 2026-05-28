@@ -18,6 +18,8 @@ import customersRoutes from './server/routes/customers.js';
 import attachmentsRoutes from './server/routes/attachments.js';
 import outsourcingRoutes from './server/routes/outsourcing.js';
 import workreportRoutes from './server/routes/workreport.js';
+import blogRoutes from './server/routes/blog.js';
+import contractDocsRoutes from './server/routes/contract-docs.js';
 
 const app = express();
 app.use((req, res, next) => {
@@ -42,6 +44,8 @@ app.use('/api/customers', customersRoutes);
 app.use('/api/attachments', attachmentsRoutes);
 app.use('/api/outsourcing', outsourcingRoutes);
 app.use('/api/workreport', workreportRoutes);
+app.use('/api/blog', blogRoutes);
+app.use('/api/contract-docs', contractDocsRoutes);
 
 app.get(['/', '/index.html'], (req, res) => {
   res.redirect(302, '/login/');

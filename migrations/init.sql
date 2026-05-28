@@ -156,3 +156,16 @@ CREATE TABLE IF NOT EXISTS attendance (
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(user_id, date)
 );
+
+CREATE TABLE IF NOT EXISTS blog_posts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  slug TEXT UNIQUE NOT NULL,
+  excerpt TEXT,
+  content TEXT,
+  status TEXT DEFAULT 'draft',
+  published_at DATETIME,
+  created_by INTEGER REFERENCES users(id),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);

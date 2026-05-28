@@ -24,7 +24,7 @@ router.get('/', authMiddleware, async (req, res) => {
                  FROM projects p LEFT JOIN users u ON u.username = p.manager
                  UNION ALL
                  SELECT o.company_name, o.manager, o.manager as manager_name, o.created_at, o.price
-                 FROM outsourcing o
+                 FROM outsourcing o WHERE (o.status = '제작완료' OR o.status IS NULL OR o.status IN ('진행중', '완료됨', '대기중'))
                )
                WHERE strftime('%Y', created_at) = ? AND strftime('%m', created_at) = ?
                ORDER BY created_at DESC`;
@@ -49,7 +49,7 @@ router.get('/', authMiddleware, async (req, res) => {
                FROM projects p LEFT JOIN users u ON u.username = p.manager
                UNION ALL
                SELECT o.company_name, o.manager, o.manager as manager_name, o.created_at
-               FROM outsourcing o
+               FROM outsourcing o WHERE (o.status = '제작완료' OR o.status IS NULL OR o.status IN ('진행중', '완료됨', '대기중'))
              )
              ORDER BY created_at DESC LIMIT ?`;
       params = [limit];

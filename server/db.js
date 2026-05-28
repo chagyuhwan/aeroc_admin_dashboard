@@ -188,7 +188,7 @@ db.exec(`
     phone TEXT,
     manager TEXT,
     price INTEGER DEFAULT 0,
-    status TEXT DEFAULT '진행중',
+    status TEXT DEFAULT '제작완료',
     start_date DATE,
     due_date DATE,
     memo TEXT,
@@ -199,6 +199,9 @@ db.exec(`
 `);
 try { db.exec(`ALTER TABLE outsourcing ADD COLUMN representative TEXT`); } catch(e) { if (!e.message?.includes('duplicate column')) {} }
 try { db.exec(`ALTER TABLE outsourcing ADD COLUMN phone TEXT`); } catch(e) { if (!e.message?.includes('duplicate column')) {} }
+try {
+  db.exec(`UPDATE outsourcing SET status = '제작완료' WHERE status IS NULL OR status = '' OR status IN ('진행중', '대기중', '완료됨')`);
+} catch (e) { /* ignore */ }
 
 // attendance 테이블 (출근기록부)
 db.exec(`
@@ -214,5 +217,50 @@ db.exec(`
     UNIQUE(user_id, date)
   )
 `);
+
+// blog_clients 테이블 (블로그 관리 — 고객별 블로그 운영 현황)
+db.exec(`
+  CREATE TABLE IF NOT EXISTS blog_clients (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    company_name TEXT NOT NULL,
+    plan_type TEXT NOT NULL DEFAULT '1년12회',
+    naver_id TEXT,
+    naver_password TEXT,
+    blog_url TEXT,
+    keyword TEXT,
+    first_post_date DATE NOT NULL,
+    created_by INTEGER REFERENCES users(id),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+// contract_docs 테이블 (계약서 관리)
+db.exec(`
+  CREATE TABLE IF NOT EXISTS contract_docs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    contract_no TEXT UNIQUE NOT NULL,
+    contract_title TEXT NOT NULL DEFAULT '계약서',
+    client_name TEXT NOT NULL,
+    client_rep TEXT,
+    client_biz_no TEXT,
+    client_address TEXT,
+    service_title TEXT NOT NULL,
+    service_detail TEXT,
+    amount INTEGER DEFAULT 0,
+    start_date DATE,
+    end_date DATE,
+    special_terms TEXT,
+    contract_date DATE NOT NULL,
+    aeroc_rep TEXT,
+    aeroc_biz_no TEXT,
+    aeroc_address TEXT,
+    created_by INTEGER REFERENCES users(id),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+// contract_title 컬럼 마이그레이션 (기존 DB 호환)
+try { db.exec(`ALTER TABLE contract_docs ADD COLUMN contract_title TEXT NOT NULL DEFAULT '계약서'`); } catch(e) {}
 
 export default db;

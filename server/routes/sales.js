@@ -11,7 +11,7 @@ router.get('/', authMiddleware, async (req, res) => {
     const includeOutsourcing = req.query.include_outsourcing === '1' && isAdmin;
 
     const sourceSQL = includeOutsourcing
-      ? `(SELECT price, created_at FROM projects WHERE price > 0 UNION ALL SELECT price, created_at FROM outsourcing WHERE price > 0)`
+      ? `(SELECT price, created_at FROM projects WHERE price > 0 UNION ALL SELECT price, created_at FROM outsourcing WHERE price > 0 AND (status = '제작완료' OR status IS NULL OR status IN ('진행중', '완료됨', '대기중')))`
       : `(SELECT price, created_at FROM projects WHERE price > 0)`;
 
     const dailyQuery = `
@@ -102,7 +102,7 @@ router.get('/ranking', authMiddleware, async (req, res) => {
            FROM projects p LEFT JOIN users u ON u.username = p.manager WHERE p.price > 0
            UNION ALL
            SELECT o.manager, o.manager as manager_name, o.price, o.created_at
-           FROM outsourcing o WHERE o.price > 0
+           FROM outsourcing o WHERE o.price > 0 AND (o.status = '제작완료' OR o.status IS NULL OR o.status IN ('진행중', '완료됨', '대기중'))
          )
          WHERE strftime('%Y', created_at) = ? AND strftime('%m', created_at) = ?
          GROUP BY manager ORDER BY total DESC LIMIT 10`

@@ -19,6 +19,8 @@ import attendanceRoutes from './routes/attendance.js';
 import schedulesRoutes from './routes/schedules.js';
 import outsourcingRoutes from './routes/outsourcing.js';
 import workreportRoutes from './routes/workreport.js';
+import blogRoutes from './routes/blog.js';
+import contractDocsRoutes from './routes/contract-docs.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -52,6 +54,8 @@ export function createApp(options) {
   app.use('/api/schedules', schedulesRoutes);
   app.use('/api/outsourcing', outsourcingRoutes);
   app.use('/api/workreport', workreportRoutes);
+  app.use('/api/blog', blogRoutes);
+  app.use('/api/contract-docs', contractDocsRoutes);
 
   app.get(['/login', '/login/', '/login.html'], async (req, res) => {
     if (assets) {

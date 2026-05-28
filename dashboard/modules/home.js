@@ -65,27 +65,42 @@ export async function loadDashboardData(authToken, options = {}) {
   const outQ = options.includeOutsourcing ? '?include_outsourcing=1' : '';
 
   try {
-    const [projectsRes, allContractsRes, monthlyContractsRes, salesRes, rankingRes] = await Promise.all([
+    const fetches = [
       fetch('/api/projects', { headers: h }),
       fetch(`/api/contracts${outQ}`, { headers: h }),
       fetch(`/api/contracts?year=${year}&month=${month}${out}`, { headers: h }),
       fetch(`/api/sales${outQ}`, { headers: h }),
-      fetch(`/api/sales/ranking?year=${year}&month=${month}${out}`, { headers: h })
-    ]);
-    const [projects, allContracts, monthlyContracts, sales, ranking] = await Promise.all([
-      projectsRes.json(), allContractsRes.json(), monthlyContractsRes.json(), salesRes.json(), rankingRes.json()
-    ]);
+      fetch(`/api/sales/ranking?year=${year}&month=${month}${out}`, { headers: h }),
+    ];
+    if (options.includeOutsourcing) {
+      fetches.push(fetch('/api/outsourcing/settlement-stats', { headers: h }));
+    }
+    const responses = await Promise.all(fetches);
+    const results = await Promise.all(
+      responses.map(async (res) => {
+        if (!res.ok) {
+          console.error('대시보드 API 오류:', res.url, res.status);
+          return { success: false };
+        }
+        return res.json();
+      })
+    );
+    const [projects, allContracts, monthlyContracts, sales, ranking, settlement] = results;
 
-    if (projects.success) updateProjectWidgets(projects);
+    if (projects.success) updateProjectWidgets(projects, { includeOutsourcing: !!options.includeOutsourcing });
+    if (options.includeOutsourcing) {
+      if (settlement?.success) updateSettlementWidgets(settlement);
+      else await loadOutsourcingSettlementFallback(h);
+    }
     if (allContracts.success && monthlyContracts.success) updateContractWidgets(allContracts, monthlyContracts);
-    if (sales.success) updateSalesWidgets(sales, monthlyContracts);
+    if (sales.success) updateSalesWidgets(sales, monthlyContracts, options);
     if (ranking.success) updateRankingWidget(ranking, year, month);
   } catch (err) {
     console.error('대시보드 데이터 로드 실패:', err);
   }
 }
 
-function updateProjectWidgets(projects) {
+function updateProjectWidgets(projects, opts = {}) {
   const counts = projects.counts || {};
   const inProgress = counts['진행중'] || 0;
   const done = counts['완료됨'] || 0;
@@ -107,9 +122,56 @@ function updateProjectWidgets(projects) {
     window.projectStatusChartInst.update();
   }
 
-  document.getElementById('settlementPending').textContent = `${inProgress}건`;
-  document.getElementById('settlementDone').textContent = `${done}건`;
+  if (!opts.includeOutsourcing) {
+    document.getElementById('settlementPending').textContent = `${inProgress}건`;
+    document.getElementById('settlementDone').textContent = `${done}건`;
+  }
   document.getElementById('pendingCount').textContent = `${pending}건`;
+}
+
+async function loadOutsourcingSettlementFallback(headers) {
+  try {
+    const res = await fetch('/api/outsourcing?status=제작완료', { headers });
+    const data = await res.json();
+    if (!data.success) return;
+    const items = data.items || [];
+    const now = new Date();
+    const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    let monthAmount = 0;
+    let monthCount = 0;
+    items.forEach(item => {
+      const p = Number(item.price) || 0;
+      if (item.created_at?.slice(0, 7) === ym) {
+        monthCount += 1;
+        monthAmount += p;
+      }
+    });
+    updateSettlementWidgets({
+      pendingCount: items.length,
+      pendingAmount: items.reduce((s, i) => s + (Number(i.price) || 0), 0),
+      pendingMonthCount: monthCount,
+      pendingMonthAmount: monthAmount,
+      settledCount: data.counts?.['정산완료'] ?? 0,
+    });
+  } catch (e) {
+    console.error('정산 현황 fallback 실패:', e);
+  }
+}
+
+function updateSettlementWidgets(settlement) {
+  const pendingCount = settlement.pendingCount ?? 0;
+  const pendingAmount = settlement.pendingAmount ?? settlement.pendingMonthAmount ?? 0;
+  const pendingMonthAmount = settlement.pendingMonthAmount ?? 0;
+
+  document.getElementById('settlementPending').textContent = `${pendingCount}건`;
+  document.getElementById('settlementDone').textContent = `${settlement.settledCount ?? 0}건`;
+  // 미정산 건이 있으면 총 미정산 금액 표시 (이번달만 있으면 이번달 금액)
+  const displayAmount = pendingCount > 0 ? (pendingAmount || pendingMonthAmount) : pendingMonthAmount;
+  document.getElementById('settlementAmount').textContent = formatWon(displayAmount);
+  const label = document.getElementById('settlementAmountLabel');
+  if (label) label.textContent = pendingMonthAmount > 0 && pendingAmount !== pendingMonthAmount
+    ? '미정산 금액 (전체)'
+    : '미정산 금액';
 }
 
 function updateContractWidgets(allContracts, monthlyContracts) {
@@ -162,7 +224,7 @@ function updateRecentContractsList(contracts) {
   `).join('');
 }
 
-function updateSalesWidgets(sales, monthlyContracts) {
+function updateSalesWidgets(sales, monthlyContracts, options = {}) {
   const monthlyData = sales.monthly?.data || [];
   const monthlyTotalWon = monthlyData.reduce((sum, v) => sum + v, 0) * 10000;
   const cumulativeData = sales.cumulative?.data || [];
@@ -175,7 +237,9 @@ function updateSalesWidgets(sales, monthlyContracts) {
   document.getElementById('cumulativeTotal').textContent = formatWon(cumulativeTotalWon);
   document.getElementById('monthlyTotalAmt').textContent = formatWon(monthlyTotalWon);
   document.getElementById('monthlyContractCnt').textContent = (monthlyContracts.contracts || []).length;
-  document.getElementById('settlementAmount').textContent = formatWon(monthlyTotalWon);
+  if (!options.includeOutsourcing) {
+    document.getElementById('settlementAmount').textContent = formatWon(monthlyTotalWon);
+  }
 
   if (window.dailySalesChartInst) {
     window.dailySalesChartInst.data.labels = sales.daily?.labels || [];

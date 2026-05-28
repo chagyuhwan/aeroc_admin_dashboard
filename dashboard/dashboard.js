@@ -20,6 +20,8 @@ import { initAttendance, loadAttendance } from './modules/attendance.js';
 import { initSchedule, loadSchedulePage } from './modules/schedule.js';
 import { initOutsourcing, loadOutsourcing } from './modules/outsourcing.js';
 import { initWorkreport, loadWorkreport } from './modules/workreport.js';
+import { initBlog, loadBlogPosts } from './modules/blog.js';
+import { initContractDoc, loadContractDocs } from './modules/contractdoc.js';
 
 // ── 인증 체크 ──────────────────────────────────────────
 const token = localStorage.getItem('token');
@@ -109,6 +111,8 @@ const PAGES = {
   schedule: document.getElementById('schedulePage'),
   outsourcing: document.getElementById('outsourcingPage'),
   workreport: document.getElementById('workreportPage'),
+  blog: document.getElementById('blogPage'),
+  'contract-mgmt': document.getElementById('contractMgmtPage'),
 };
 const placeholder = document.getElementById('pagePlaceholder');
 
@@ -166,6 +170,18 @@ function showPage(pageName) {
     case 'workreport':
       if (PAGES.workreport) { PAGES.workreport.style.display = 'block'; loadWorkreport(); }
       break;
+    case 'blog':
+      if (user.role !== 'admin') { placeholder.style.display = 'block'; placeholder.querySelector('p').textContent = '관리자만 접근할 수 있습니다.'; return; }
+      if (PAGES.blog) { PAGES.blog.style.display = 'block'; loadBlogPosts(); }
+      break;
+    case 'contract-mgmt':
+      if (PAGES['contract-mgmt']) {
+        PAGES['contract-mgmt'].style.display = 'block';
+        document.getElementById('contractListView').style.display = 'block';
+        document.getElementById('contractEditorView').style.display = 'none';
+        loadContractDocs();
+      }
+      break;
     case 'employees':
       if (PAGES.employees) {
         PAGES.employees.style.display = 'block';
@@ -191,7 +207,7 @@ function showPage(pageName) {
 
 function getPageFromHash() {
   const hash = window.location.hash.slice(1);
-  const validPages = ['home', 'admin-dashboard', 'projects', 'employees', 'password-vault', 'leave', 'staff-mgmt', 'customers', 'quote', 'attendance', 'schedule', 'outsourcing', 'workreport'];
+  const validPages = ['home', 'admin-dashboard', 'projects', 'employees', 'password-vault', 'leave', 'staff-mgmt', 'customers', 'quote', 'attendance', 'schedule', 'outsourcing', 'workreport', 'blog', 'contract-mgmt'];
   return validPages.includes(hash) ? hash : 'home';
 }
 
@@ -221,3 +237,5 @@ initAttendance(token);
 initSchedule(token);
 initOutsourcing(token, user);
 initWorkreport(token, user);
+initBlog(token);
+initContractDoc(token);

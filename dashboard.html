@@ -13,6 +13,7 @@
     </script>
     <link rel="stylesheet" href="/dashboard/dashboard.css">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
 </head>
 <body>
     <div class="dashboard-layout">
@@ -65,6 +66,10 @@
                             <span class="icon"><i class='bx bx-briefcase-alt-2'></i></span>
                             <span class="label">외주관리</span>
                         </a></li>
+                        <li><a href="#blog" class="nav-link" data-page="blog">
+                            <span class="icon"><i class='bx bx-news'></i></span>
+                            <span class="label">블로그 관리</span>
+                        </a></li>
                     </ul>
                 </div>
                 <div class="nav-section">
@@ -77,6 +82,10 @@
                         <li><a href="#customers" class="nav-link" data-page="customers">
                             <span class="icon"><i class='bx bx-receipt'></i></span>
                             <span class="label">견적서 관리</span>
+                        </a></li>
+                        <li><a href="#contract-mgmt" class="nav-link" data-page="contract-mgmt">
+                            <span class="icon"><i class='bx bx-file-blank'></i></span>
+                            <span class="label">계약서 관리</span>
                         </a></li>
                     </ul>
                 </div>
@@ -353,21 +362,21 @@
                         <div class="dash-card">
                             <div class="dash-card-header">
                                 <span class="dash-card-title">정산 현황</span>
-                                <a href="#projects" class="dash-card-link">전체 보기 →</a>
+                                <a href="#outsourcing" class="dash-card-link" id="settlementMoreLink">전체 보기 →</a>
                             </div>
                             <div class="settlement-body">
                                 <div class="settlement-main-val" id="settlementAmount">₩0</div>
-                                <div class="settlement-main-label">이번달 매출 총액</div>
+                                <div class="settlement-main-label" id="settlementAmountLabel">이번달 매출 총액</div>
                                 <div class="settlement-change" id="settlementChange">
                                     <i class='bx bx-minus'></i> 0% 전월 대비
                                 </div>
                                 <div class="settlement-stats">
                                     <div class="settlement-stat">
-                                        <span class="settlement-stat-label">대기 중</span>
+                                        <span class="settlement-stat-label">미정산</span>
                                         <span class="settlement-stat-val" id="settlementPending">0건</span>
                                     </div>
                                     <div class="settlement-stat">
-                                        <span class="settlement-stat-label">반영</span>
+                                        <span class="settlement-stat-label">정산완료</span>
                                         <span class="settlement-stat-val" id="settlementDone">0건</span>
                                     </div>
                                 </div>
@@ -975,6 +984,351 @@
                     </div>
                 </div>
 
+                <!-- 계약서 관리 페이지 -->
+                <div id="contractMgmtPage" style="display:none;">
+
+                    <!-- 목록 뷰 -->
+                    <div id="contractListView">
+                        <div class="customer-page-header">
+                            <div>
+                                <h2 class="page-title">계약서 관리</h2>
+                                <p class="page-subtitle">계약서를 작성하고 이미지로 다운로드합니다</p>
+                            </div>
+                        </div>
+                        <div class="customer-toolbar">
+                            <div class="customer-toolbar-left">
+                                <input type="text" id="cdSearch" class="form-control customer-search-input" placeholder="업체명, 서비스명, 계약번호 검색">
+                                <button class="btn btn-primary customer-search-btn" id="cdSearchBtn">
+                                    <i class='bx bx-search'></i> 검색
+                                </button>
+                            </div>
+                            <button class="btn btn-primary" id="cdNewBtn">
+                                <i class='bx bx-plus'></i> 새 계약서
+                            </button>
+                        </div>
+                        <div class="customer-count-bar">
+                            계약서 목록 (<span id="cdCount">0</span>)
+                        </div>
+                        <div class="customer-table-wrap">
+                            <table class="customer-table">
+                                <thead>
+                                    <tr>
+                                        <th>계약번호</th>
+                                        <th>업체명</th>
+                                        <th>서비스명</th>
+                                        <th>계약 금액</th>
+                                        <th>계약 기간</th>
+                                        <th>계약일</th>
+                                        <th>작업</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="cdTableBody">
+                                    <tr><td colspan="7" class="customer-empty">등록된 계약서가 없습니다.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 에디터 뷰 -->
+                    <div id="contractEditorView" style="display:none;">
+                        <div class="cd-editor-header">
+                            <button class="btn btn-secondary btn-sm" id="cdBackBtn">
+                                <i class='bx bx-arrow-back'></i> 목록으로
+                            </button>
+                            <h2 class="page-title" id="cdEditorTitle">새 계약서</h2>
+                            <div class="cd-editor-actions">
+                                <button class="btn btn-danger btn-sm" id="cdDeleteBtn" style="display:none;">
+                                    <i class='bx bx-trash'></i> 삭제
+                                </button>
+                                <button class="btn btn-secondary btn-sm" id="cdSaveBtn">
+                                    <i class='bx bx-save'></i> 저장
+                                </button>
+                                <button class="btn btn-primary btn-sm" id="cdDownloadBtn">
+                                    <i class='bx bx-image-download'></i> 이미지 다운로드
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="cd-editor-body">
+                            <!-- 입력 폼 패널 -->
+                            <div class="cd-form-panel">
+                                <div class="cd-form-section">
+                                    <div class="cd-form-section-title"><i class='bx bx-edit'></i> 계약서 제목</div>
+                                    <div class="form-group">
+                                        <input type="text" id="cdContractTitle" class="form-control" placeholder="예: 홈페이지 제작 계약서, 디지털 마케팅 계약서" value="계약서">
+                                    </div>
+                                </div>
+                                <div class="cd-form-section">
+                                    <div class="cd-form-section-title"><i class='bx bx-buildings'></i> 갑 (위탁자) 정보</div>
+                                    <div class="form-group">
+                                        <label class="form-label">업체명 <span class="required">*</span></label>
+                                        <input type="text" id="cdClientName" class="form-control" placeholder="업체명">
+                                    </div>
+                                    <div class="customer-form-grid" style="margin-top:10px;">
+                                        <div class="form-group">
+                                            <label class="form-label">대표자</label>
+                                            <input type="text" id="cdClientRep" class="form-control" placeholder="대표자명">
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">사업자등록번호</label>
+                                            <input type="text" id="cdClientBizNo" class="form-control" placeholder="000-00-00000">
+                                        </div>
+                                    </div>
+                                    <div class="form-group" style="margin-top:10px;">
+                                        <label class="form-label">주소</label>
+                                        <input type="text" id="cdClientAddress" class="form-control" placeholder="사업장 주소">
+                                    </div>
+                                </div>
+                                <div class="cd-form-section">
+                                    <div class="cd-form-section-title"><i class='bx bx-building'></i> 을 (수급인, 에어록) 정보</div>
+                                    <div class="customer-form-grid">
+                                        <div class="form-group">
+                                            <label class="form-label">대표자</label>
+                                            <input type="text" id="cdAerocRep" class="form-control" placeholder="에어록 대표자명">
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">사업자등록번호</label>
+                                            <input type="text" id="cdAerocBizNo" class="form-control" placeholder="000-00-00000">
+                                        </div>
+                                    </div>
+                                    <div class="form-group" style="margin-top:10px;">
+                                        <label class="form-label">주소</label>
+                                        <input type="text" id="cdAerocAddress" class="form-control" placeholder="에어록 사업장 주소">
+                                    </div>
+                                </div>
+                                <div class="cd-form-section">
+                                    <div class="cd-form-section-title"><i class='bx bx-briefcase'></i> 계약 내용</div>
+                                    <div class="form-group">
+                                        <label class="form-label">서비스명 <span class="required">*</span></label>
+                                        <input type="text" id="cdServiceTitle" class="form-control" placeholder="예: 홈페이지 제작 및 유지보수">
+                                    </div>
+                                    <div class="form-group" style="margin-top:10px;">
+                                        <label class="form-label">서비스 상세 내용</label>
+                                        <textarea id="cdServiceDetail" class="form-control" rows="4" placeholder="용역 서비스 상세 내용을 입력하세요"></textarea>
+                                    </div>
+                                    <div class="form-group" style="margin-top:10px;">
+                                        <label class="form-label">계약 금액 (원)</label>
+                                        <input type="number" id="cdAmount" class="form-control" placeholder="0" min="0">
+                                    </div>
+                                    <div class="customer-form-grid" style="margin-top:10px;">
+                                        <div class="form-group">
+                                            <label class="form-label">계약 시작일</label>
+                                            <input type="date" id="cdStartDate" class="form-control">
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">계약 종료일</label>
+                                            <input type="date" id="cdEndDate" class="form-control">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="cd-form-section">
+                                    <div class="cd-form-section-title"><i class='bx bx-note'></i> 특약 사항</div>
+                                    <div class="form-group">
+                                        <textarea id="cdSpecialTerms" class="form-control" rows="4" placeholder="특약 사항을 입력하세요 (없으면 비워두세요)"></textarea>
+                                    </div>
+                                </div>
+                                <div class="cd-form-section">
+                                    <div class="cd-form-section-title"><i class='bx bx-calendar'></i> 계약일</div>
+                                    <div class="form-group">
+                                        <input type="date" id="cdContractDate" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 계약서 미리보기 패널 -->
+                            <div class="cd-preview-panel">
+                                <div class="cd-preview-label">미리보기</div>
+                                <div class="cd-preview-wrap">
+                                    <div id="contractDocument" class="cd-document">
+                                        <h1 class="cd-doc-title" id="cdPvTitle">계 약 서</h1>
+                                        <table class="cd-parties-table">
+                                            <thead>
+                                                <tr>
+                                                    <th colspan="2">갑 (위탁자)</th>
+                                                    <th colspan="2">을 (수급인)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td class="cd-field-label">상호</td>
+                                                    <td id="cdPvClientName">-</td>
+                                                    <td class="cd-field-label">상호</td>
+                                                    <td>에어록</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="cd-field-label">대표자</td>
+                                                    <td id="cdPvClientRep">-</td>
+                                                    <td class="cd-field-label">대표자</td>
+                                                    <td id="cdPvAerocRep">-</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="cd-field-label">사업자번호</td>
+                                                    <td id="cdPvClientBizNo">-</td>
+                                                    <td class="cd-field-label">사업자번호</td>
+                                                    <td id="cdPvAerocBizNo">-</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="cd-field-label">주소</td>
+                                                    <td id="cdPvClientAddress">-</td>
+                                                    <td class="cd-field-label">주소</td>
+                                                    <td id="cdPvAerocAddress">-</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <p class="cd-doc-intro">
+                                            위 당사자는 아래와 같이 용역계약을 체결하고 이를 성실히 이행할 것을 약정한다.
+                                        </p>
+                                        <div class="cd-article">
+                                            <div class="cd-article-title">제1조 (목적)</div>
+                                            <p class="cd-article-body">본 계약은 을이 갑으로부터 위탁받은 <span id="cdPvServiceTitle" class="cd-highlight">[서비스명]</span>에 관한 용역 서비스를 성실히 수행함을 목적으로 한다.</p>
+                                        </div>
+                                        <div class="cd-article">
+                                            <div class="cd-article-title">제2조 (용역 내용)</div>
+                                            <p class="cd-article-body" id="cdPvServiceDetail">-</p>
+                                        </div>
+                                        <div class="cd-article">
+                                            <div class="cd-article-title">제3조 (계약 금액)</div>
+                                            <p class="cd-article-body">금 <span id="cdPvAmount" class="cd-highlight">-</span>원정 (부가세 포함)</p>
+                                        </div>
+                                        <div class="cd-article">
+                                            <div class="cd-article-title">제4조 (계약 기간)</div>
+                                            <p class="cd-article-body"><span id="cdPvPeriod">-</span></p>
+                                        </div>
+                                        <div class="cd-article" id="cdPvSpecialArticle">
+                                            <div class="cd-article-title">제5조 (특약 사항)</div>
+                                            <p class="cd-article-body" id="cdPvSpecialTerms">-</p>
+                                        </div>
+                                        <p class="cd-doc-closing">
+                                            본 계약을 증명하기 위하여 계약서 2통을 작성하여 갑과 을이 서명·날인한 후 각 1통씩 보관한다.
+                                        </p>
+                                        <div class="cd-contract-date">계약 체결일 : <span id="cdPvContractDate">-</span></div>
+                                        <div class="cd-sig-row">
+                                            <div class="cd-sig-block">
+                                                <div class="cd-sig-title">갑 (위탁자)</div>
+                                                <div class="cd-sig-line">상&nbsp;&nbsp;&nbsp;호 : <span id="cdSigClientName">-</span></div>
+                                                <div class="cd-sig-line">대표자 : <span id="cdSigClientRep">-</span> (인)</div>
+                                                <div class="cd-sig-stamp"></div>
+                                            </div>
+                                            <div class="cd-sig-block">
+                                                <div class="cd-sig-title">을 (수급인)</div>
+                                                <div class="cd-sig-line">상&nbsp;&nbsp;&nbsp;호 : 에어록</div>
+                                                <div class="cd-sig-line">대표자 : <span id="cdSigAerocRep">-</span> (인)</div>
+                                                <div class="cd-sig-stamp">
+                                                    <img src="/dashboard/stamp.png" alt="도장" class="cd-stamp-img">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 블로그 관리 페이지 (관리자 전용) -->
+                <div class="customer-page blog-page" id="blogPage" style="display:none;">
+                    <div class="customer-page-header">
+                        <div>
+                            <h2 class="page-title">블로그 관리</h2>
+                            <p class="page-subtitle">고객 블로그 운영 현황 및 다음 업로드 일정을 관리합니다</p>
+                        </div>
+                    </div>
+                    <div class="customer-toolbar">
+                        <div class="customer-toolbar-left">
+                            <input type="text" id="blogSearch" class="form-control customer-search-input" placeholder="업체명, 네이버ID, 키워드 검색">
+                            <button class="btn btn-primary customer-search-btn" id="blogSearchBtn">
+                                <i class='bx bx-search'></i> 검색
+                            </button>
+                        </div>
+                        <button class="btn btn-primary" id="openBlogModal">
+                            <i class='bx bx-plus'></i> 블로그 등록
+                        </button>
+                    </div>
+                    <div class="customer-count-bar">
+                        등록 업체 (<span id="blogCount">0</span>) &nbsp;·&nbsp;
+                        <span style="font-size:12px;color:var(--text-muted)">남은 날짜 적은 순으로 정렬됩니다</span>
+                    </div>
+                    <div class="customer-table-wrap">
+                        <table class="customer-table blog-table">
+                            <thead>
+                                <tr>
+                                    <th>업체명</th>
+                                    <th>플랜</th>
+                                    <th>네이버 ID</th>
+                                    <th>블로그 링크</th>
+                                    <th>키워드</th>
+                                    <th>첫 업로드</th>
+                                    <th>다음 업로드</th>
+                                    <th>남은 날짜</th>
+                                    <th>작업</th>
+                                </tr>
+                            </thead>
+                            <tbody id="blogTableBody">
+                                <tr><td colspan="9" class="customer-empty">등록된 블로그가 없습니다.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 블로그 등록/수정 모달 -->
+                <div class="modal-overlay" id="blogModalOverlay" style="display:none;">
+                    <div class="modal customer-modal blog-modal">
+                        <div class="modal-header">
+                            <h3 id="blogModalTitle">블로그 등록</h3>
+                            <button class="modal-close" id="closeBlogModal"><i class='bx bx-x'></i></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="customer-form-grid">
+                                <div class="form-group">
+                                    <label class="form-label">업체명 <span class="required">*</span></label>
+                                    <input type="text" id="blogCompanyName" class="form-control" placeholder="업체명">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">플랜 <span class="required">*</span></label>
+                                    <select id="blogPlanType" class="form-control">
+                                        <option value="1년12회">1년 12회</option>
+                                        <option value="2년24회">2년 24회</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="customer-form-grid" style="margin-top:12px;">
+                                <div class="form-group">
+                                    <label class="form-label">네이버 아이디</label>
+                                    <input type="text" id="blogNaverId" class="form-control" placeholder="네이버 아이디">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">네이버 비밀번호</label>
+                                    <div class="blog-pw-wrap">
+                                        <input type="password" id="blogNaverPw" class="form-control" placeholder="비밀번호">
+                                        <button type="button" id="blogNaverPwToggle" class="blog-pw-toggle" title="보기/숨기기">
+                                            <i class='bx bx-show'></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-top:12px;">
+                                <label class="form-label">블로그 링크</label>
+                                <input type="url" id="blogUrl" class="form-control" placeholder="https://blog.naver.com/...">
+                            </div>
+                            <div class="form-group" style="margin-top:12px;">
+                                <label class="form-label">키워드</label>
+                                <input type="text" id="blogKeyword" class="form-control" placeholder="주요 키워드 (예: 강남 맛집, 서울 인테리어)">
+                            </div>
+                            <div class="form-group" style="margin-top:12px;">
+                                <label class="form-label">첫 업로드 날짜 <span class="required">*</span></label>
+                                <input type="date" id="blogFirstDate" class="form-control">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-danger" id="blogDeleteBtn" style="display:none;">삭제</button>
+                            <div style="display:flex;gap:8px;margin-left:auto;">
+                                <button class="btn btn-secondary" id="cancelBlogModal">취소</button>
+                                <button class="btn btn-primary" id="saveBlogBtn">저장</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- 직원 관리 페이지 (관리자 전용) -->
                 <div class="staff-mgmt-page" id="staffMgmtPage" style="display:none;">
                     <div class="page-header">
@@ -1341,9 +1695,16 @@
 
                         <div class="status-tabs">
                             <button type="button" class="out-tab-btn tab-btn active" data-status="전체">전체 <span class="tab-count" id="outCountAll">0</span></button>
-                            <button type="button" class="out-tab-btn tab-btn" data-status="진행중">진행중 <span class="tab-count" id="outCountProgress">0</span></button>
-                            <button type="button" class="out-tab-btn tab-btn" data-status="완료됨">완료됨 <span class="tab-count" id="outCountDone">0</span></button>
-                            <button type="button" class="out-tab-btn tab-btn" data-status="대기중">대기중 <span class="tab-count" id="outCountPending">0</span></button>
+                            <button type="button" class="out-tab-btn tab-btn" data-status="제작완료">제작완료 <span class="tab-count" id="outCountProduction">0</span></button>
+                            <button type="button" class="out-tab-btn tab-btn" data-status="정산완료">정산완료 <span class="tab-count" id="outCountSettled">0</span></button>
+                        </div>
+
+                        <div class="out-bulk-bar" id="outBulkBar" style="display:none;">
+                            <span class="out-bulk-count" id="outBulkCount">0개 선택</span>
+                            <button type="button" class="btn-primary btn-sm" id="outBulkSettleBtn">
+                                <i class='bx bx-check-double'></i> 선택 항목 정산완료
+                            </button>
+                            <button type="button" class="btn-cancel btn-sm" id="outBulkClearBtn">선택 해제</button>
                         </div>
 
                         <div class="search-bar">
@@ -1356,6 +1717,7 @@
                                 <table class="project-table">
                                     <thead>
                                         <tr>
+                                            <th class="col-check"><input type="checkbox" id="outSelectAll" title="전체 선택"></th>
                                             <th>업체명</th>
                                             <th>업체 대표</th>
                                             <th>전화번호</th>
@@ -1369,7 +1731,7 @@
                                     </thead>
                                     <tbody id="outsourcingListBody">
                                         <tr class="empty-row" id="outsourcingEmptyRow">
-                                            <td colspan="9">등록된 외주 데이터가 없습니다.</td>
+                                            <td colspan="10">등록된 외주 데이터가 없습니다.</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -1446,9 +1808,8 @@
                                     <div class="form-group">
                                         <label>상태</label>
                                         <select id="outStatus">
-                                            <option value="진행중">진행중</option>
-                                            <option value="완료됨">완료됨</option>
-                                            <option value="대기중">대기중</option>
+                                            <option value="제작완료">제작완료</option>
+                                            <option value="정산완료">정산완료</option>
                                         </select>
                                     </div>
                                 </div>

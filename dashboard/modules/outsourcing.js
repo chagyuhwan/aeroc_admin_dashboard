@@ -5,6 +5,7 @@ let token = '';
 let currentUser = {};
 let editingId = null;
 let filters = { status: '전체', search: '' };
+const selectedIds = new Set();
 
 const OUTSOURCE_PRICES = { '기본형': 150000, '고급형': 200000 };
 
@@ -25,6 +26,34 @@ function syncPriceDisplay() {
   }
 }
 
+function updateBulkBar() {
+  const bar = document.getElementById('outBulkBar');
+  const countEl = document.getElementById('outBulkCount');
+  if (!bar) return;
+  if (selectedIds.size > 0) {
+    bar.style.display = 'flex';
+    countEl.textContent = `${selectedIds.size}개 선택`;
+  } else {
+    bar.style.display = 'none';
+  }
+  const selectAll = document.getElementById('outSelectAll');
+  const checkboxes = document.querySelectorAll('.out-row-check:not(:disabled)');
+  if (selectAll && checkboxes.length) {
+    const checked = [...checkboxes].filter(c => c.checked).length;
+    selectAll.checked = checked === checkboxes.length && checkboxes.length > 0;
+    selectAll.indeterminate = checked > 0 && checked < checkboxes.length;
+  } else if (selectAll) {
+    selectAll.checked = false;
+    selectAll.indeterminate = false;
+  }
+}
+
+function clearSelection() {
+  selectedIds.clear();
+  document.querySelectorAll('.out-row-check').forEach(c => { c.checked = false; });
+  updateBulkBar();
+}
+
 // ── 데이터 로드 ───────────────────────────────────────────
 export async function loadOutsourcing() {
   try {
@@ -33,44 +62,63 @@ export async function loadOutsourcing() {
     if (filters.search) params.set('search', filters.search);
 
     const res = await fetch('/api/outsourcing?' + params.toString(), {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: `Bearer ${token}` },
     });
     const result = await res.json();
     if (!result.success) throw new Error(result.message);
 
-    document.getElementById('outCountAll').textContent      = result.counts?.전체   ?? 0;
-    document.getElementById('outCountProgress').textContent = result.counts?.진행중 ?? 0;
-    document.getElementById('outCountDone').textContent     = result.counts?.완료됨 ?? 0;
-    document.getElementById('outCountPending').textContent  = result.counts?.대기중 ?? 0;
+    document.getElementById('outCountAll').textContent         = result.counts?.전체     ?? 0;
+    document.getElementById('outCountProduction').textContent = result.counts?.제작완료 ?? 0;
+    document.getElementById('outCountSettled').textContent    = result.counts?.정산완료 ?? 0;
 
     const tbody    = document.getElementById('outsourcingListBody');
     const emptyRow = document.getElementById('outsourcingEmptyRow');
     tbody.querySelectorAll('tr:not(.empty-row)').forEach(r => r.remove());
 
+    const staleIds = [...selectedIds].filter(id => !result.items.some(i => i.id === id));
+    staleIds.forEach(id => selectedIds.delete(id));
+
     if (!result.items.length) {
       emptyRow.style.display = '';
+      clearSelection();
     } else {
       emptyRow.style.display = 'none';
       result.items.forEach(item => {
         const tr = document.createElement('tr');
         tr.style.cursor = 'pointer';
         const priceDisplay = item.price ? Number(item.price).toLocaleString('ko-KR') + '원' : '-';
+        const status = item.status || '제작완료';
+        const canSelect = status === '제작완료';
+        const checked = selectedIds.has(item.id);
 
         tr.innerHTML = `
+          <td class="col-check" onclick="event.stopPropagation()">
+            <input type="checkbox" class="out-row-check" data-id="${item.id}"
+              ${canSelect ? '' : 'disabled'} ${checked ? 'checked' : ''}>
+          </td>
           <td>${escapeHtml(item.company_name)}</td>
           <td>${escapeHtml(item.representative || '-')}</td>
           <td>${escapeHtml(item.phone || '-')}</td>
           <td>${escapeHtml(item.outsource_type)}</td>
           <td>${priceDisplay}</td>
           <td>${escapeHtml(item.manager || '-')}</td>
-          <td><span class="status-badge ${item.status || '진행중'}">${item.status || '진행중'}</span></td>
+          <td><span class="status-badge ${status}">${status}</span></td>
           <td>${new Date(item.created_at).toLocaleDateString('ko-KR')}</td>
           <td class="col-action"><div class="col-action-wrap">
             <button type="button" class="row-action-btn" data-id="${item.id}" title="더보기"><i class='bx bx-dots-vertical-rounded'></i></button>
           </div></td>`;
 
+        const cb = tr.querySelector('.out-row-check');
+        if (cb && canSelect) {
+          cb.addEventListener('change', () => {
+            if (cb.checked) selectedIds.add(item.id);
+            else selectedIds.delete(item.id);
+            updateBulkBar();
+          });
+        }
+
         tr.addEventListener('click', e => {
-          if (e.target.closest('.row-action-btn')) return;
+          if (e.target.closest('.row-action-btn, .col-check, .out-row-check')) return;
           openEditView(item.id);
         });
         tbody.appendChild(tr);
@@ -79,6 +127,7 @@ export async function loadOutsourcing() {
       tbody.querySelectorAll('.row-action-btn').forEach(btn => {
         btn.addEventListener('click', e => showRowMenu(e, btn.dataset.id));
       });
+      updateBulkBar();
     }
   } catch (err) {
     console.error('외주 목록 로드 실패:', err);
@@ -92,7 +141,7 @@ function showRowMenu(e, id) {
   const menu = document.createElement('div');
   menu.id = 'outRowMenu';
   menu.style.cssText = `position:fixed;left:${e.clientX}px;top:${e.clientY}px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.15);padding:4px;z-index:300;min-width:120px;`;
-  ['수정', '진행중', '완료됨', '대기중', '삭제'].forEach(a => {
+  ['수정', '제작완료', '정산완료', '삭제'].forEach(a => {
     const btn = document.createElement('button');
     btn.className = a === '삭제' ? 'row-menu-item delete' : 'row-menu-item';
     btn.textContent = a;
@@ -120,11 +169,35 @@ async function updateStatus(id, status) {
     const res = await fetch(`/api/outsourcing/${id}`, {
       method: 'PATCH',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status })
+      body: JSON.stringify({ status }),
     });
     const result = await res.json();
-    if (result.success) loadOutsourcing();
+    if (result.success) {
+      selectedIds.delete(Number(id));
+      loadOutsourcing();
+    } else alert(result.message || '변경 실패');
   } catch (err) { console.error(err); }
+}
+
+async function bulkSettle() {
+  const ids = [...selectedIds];
+  if (!ids.length) { alert('선택된 항목이 없습니다.'); return; }
+  if (!confirm(`선택한 ${ids.length}건을 정산완료로 변경하시겠습니까?`)) return;
+  try {
+    const res = await fetch('/api/outsourcing/bulk-status', {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids, status: '정산완료' }),
+    });
+    const result = await res.json();
+    if (result.success) {
+      clearSelection();
+      loadOutsourcing();
+      alert(result.message || '변경되었습니다.');
+    } else alert(result.message || '변경 실패');
+  } catch (err) {
+    alert('변경 중 오류가 발생했습니다.');
+  }
 }
 
 // ── 삭제 ─────────────────────────────────────────────────
@@ -132,11 +205,13 @@ async function deleteItem(id) {
   if (!confirm('정말 삭제하시겠습니까?')) return;
   try {
     const res = await fetch(`/api/outsourcing/${id}`, {
-      method: 'DELETE', headers: { Authorization: `Bearer ${token}` }
+      method: 'DELETE', headers: { Authorization: `Bearer ${token}` },
     });
     const result = await res.json();
-    if (result.success) loadOutsourcing();
-    else alert(result.message || '삭제 실패');
+    if (result.success) {
+      selectedIds.delete(Number(id));
+      loadOutsourcing();
+    } else alert(result.message || '삭제 실패');
   } catch (err) { alert('삭제 중 오류가 발생했습니다.'); }
 }
 
@@ -160,7 +235,7 @@ async function openEditView(id) {
       document.getElementById('outPhone').value          = p.phone           || '';
       document.getElementById('outManager').value        = p.manager         || '';
       document.getElementById('outType').value           = p.outsource_type  || '';
-      document.getElementById('outStatus').value         = p.status          || '진행중';
+      document.getElementById('outStatus').value         = p.status          || '제작완료';
       document.getElementById('outMemo').value           = p.memo            || '';
       syncPriceDisplay();
     } catch { alert('불러오는 중 오류가 발생했습니다.'); }
@@ -168,7 +243,7 @@ async function openEditView(id) {
     editingId = null;
     document.getElementById('outPageTitle').textContent = '외주 등록';
     document.getElementById('outsourcingForm').reset();
-    document.getElementById('outStatus').value  = '진행중';
+    document.getElementById('outStatus').value  = '제작완료';
     document.getElementById('outManager').value = currentUser.name || currentUser.username || '';
     syncPriceDisplay();
   }
@@ -202,9 +277,24 @@ export function initOutsourcing(authToken, user) {
       document.querySelectorAll('.out-tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       filters.status = btn.dataset.status;
+      clearSelection();
       loadOutsourcing();
     });
   });
+
+  document.getElementById('outSelectAll')?.addEventListener('change', e => {
+    const checked = e.target.checked;
+    document.querySelectorAll('.out-row-check:not(:disabled)').forEach(cb => {
+      cb.checked = checked;
+      const id = Number(cb.dataset.id);
+      if (checked) selectedIds.add(id);
+      else selectedIds.delete(id);
+    });
+    updateBulkBar();
+  });
+
+  document.getElementById('outBulkSettleBtn')?.addEventListener('click', bulkSettle);
+  document.getElementById('outBulkClearBtn')?.addEventListener('click', clearSelection);
 
   document.getElementById('outSearchBtn')?.addEventListener('click', () => {
     filters.search = document.getElementById('outSearchInput').value.trim();
@@ -220,7 +310,7 @@ export function initOutsourcing(authToken, user) {
     let csv = '\uFEFF업체명,업체대표,전화번호,홈페이지유형,금액,담당자,상태,등록일\n';
     rows.forEach(tr => {
       const tds = tr.querySelectorAll('td');
-      if (tds.length >= 8) csv += Array.from(tds).slice(0, 8).map(td => `"${td.textContent.trim()}"`).join(',') + '\n';
+      if (tds.length >= 9) csv += Array.from(tds).slice(1, 9).map(td => `"${td.textContent.trim()}"`).join(',') + '\n';
     });
     const a = document.createElement('a');
     a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
@@ -251,7 +341,7 @@ export function initOutsourcing(authToken, user) {
       const res    = await fetch(url, {
         method: isEdit ? 'PATCH' : 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
+        body: JSON.stringify(body),
       });
       const result = await res.json();
       if (result.success) {

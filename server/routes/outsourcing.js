@@ -2,7 +2,7 @@ import express from 'express';
 import { authMiddleware } from '../middleware/auth.js';
 
 const router = express.Router();
-const STATUSES = ['진행중', '완료됨', '대기중'];
+const STATUSES = ['제작완료', '정산완료'];
 
 function adminOnly(req, res, next) {
   if (req.user?.role !== 'admin') {
@@ -10,6 +10,43 @@ function adminOnly(req, res, next) {
   }
   next();
 }
+
+// 미정산 조건 (NULL·구 상태값 포함)
+const PENDING_STATUS_SQL = `(status = '제작완료' OR status IS NULL OR status IN ('진행중', '완료됨', '대기중'))`;
+
+// 정산 현황 (관리자 대시보드) — 미정산만 집계
+router.get('/settlement-stats', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const db = req.db;
+    const pending = await db.prepare(`
+      SELECT COUNT(*) as cnt, COALESCE(SUM(price), 0) as total
+      FROM outsourcing WHERE ${PENDING_STATUS_SQL}
+    `).first();
+    const pendingMonth = await db.prepare(`
+      SELECT COUNT(*) as cnt, COALESCE(SUM(price), 0) as total
+      FROM outsourcing
+      WHERE ${PENDING_STATUS_SQL}
+        AND strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now')
+    `).first();
+    const settled = await db.prepare(`
+      SELECT COUNT(*) as cnt FROM outsourcing WHERE status = '정산완료'
+    `).first();
+
+    const num = (v) => Number(v) || 0;
+
+    res.json({
+      success: true,
+      pendingCount: num(pending?.cnt),
+      pendingAmount: num(pending?.total),
+      pendingMonthCount: num(pendingMonth?.cnt),
+      pendingMonthAmount: num(pendingMonth?.total),
+      settledCount: num(settled?.cnt),
+    });
+  } catch (err) {
+    console.error('정산 현황 조회 오류:', err);
+    res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
+  }
+});
 
 // 목록 조회
 router.get('/', authMiddleware, adminOnly, async (req, res) => {
@@ -25,8 +62,12 @@ router.get('/', authMiddleware, adminOnly, async (req, res) => {
     const params = [];
 
     if (status && status !== '전체' && STATUSES.includes(status)) {
-      sql += ` AND o.status = ?`;
-      params.push(status);
+      if (status === '제작완료') {
+        sql += ` AND (o.status = '제작완료' OR o.status IS NULL OR o.status IN ('진행중', '완료됨', '대기중'))`;
+      } else {
+        sql += ` AND o.status = ?`;
+        params.push(status);
+      }
     }
     if (search && search.trim()) {
       sql += ` AND (o.company_name LIKE ? OR o.outsource_type LIKE ? OR o.manager LIKE ?)`;
@@ -43,9 +84,19 @@ router.get('/', authMiddleware, adminOnly, async (req, res) => {
     const { results: counts } = await db.prepare(
       `SELECT status, COUNT(*) as cnt FROM outsourcing GROUP BY status`
     ).all();
-    const countMap = { 전체: 0, 진행중: 0, 완료됨: 0, 대기중: 0 };
-    counts.forEach(r => { countMap[r.status] = r.cnt; });
-    countMap.전체 = counts.reduce((a, c) => a + c.cnt, 0);
+    const countMap = { 전체: 0, 제작완료: 0, 정산완료: 0 };
+    const legacyPending = ['진행중', '완료됨', '대기중', null, undefined, ''];
+    counts.forEach(r => {
+      const s = r.status;
+      const cnt = Number(r.cnt) || 0;
+      if (s === '정산완료') countMap['정산완료'] += cnt;
+      else countMap['제작완료'] += cnt;
+    });
+    countMap.전체 = countMap['제작완료'] + countMap['정산완료'];
+
+    items.forEach(row => {
+      if (!row.status || legacyPending.includes(row.status)) row.status = '제작완료';
+    });
 
     res.json({ success: true, items, counts: countMap });
   } catch (err) {
@@ -58,6 +109,7 @@ router.get('/', authMiddleware, adminOnly, async (req, res) => {
 router.get('/:id', authMiddleware, adminOnly, async (req, res) => {
   try {
     const db = req.db;
+    if (req.params.id === 'settlement-stats') return res.status(404).json({ success: false });
     const item = await db.prepare(`SELECT * FROM outsourcing WHERE id = ?`).bind(req.params.id).first();
     if (!item) return res.status(404).json({ success: false, message: '데이터를 찾을 수 없습니다.' });
     res.json({ success: true, item });
@@ -87,7 +139,7 @@ router.post('/', authMiddleware, adminOnly, async (req, res) => {
       (phone || '').trim() || null,
       (manager || '').trim() || null,
       price,
-      (status && STATUSES.includes(status)) ? status : '진행중',
+      (status && STATUSES.includes(status)) ? status : '제작완료',
       (memo || '').trim() || null,
       req.user.id
     ).run();
@@ -95,6 +147,34 @@ router.post('/', authMiddleware, adminOnly, async (req, res) => {
     res.status(201).json({ success: true, message: '등록되었습니다.', id: result.meta.last_row_id });
   } catch (err) {
     console.error('외주 등록 오류:', err);
+    res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
+  }
+});
+
+// 일괄 상태 변경
+router.patch('/bulk-status', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const db = req.db;
+    const { ids, status } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ success: false, message: '선택된 항목이 없습니다.' });
+    }
+    if (!status || !STATUSES.includes(status)) {
+      return res.status(400).json({ success: false, message: '유효하지 않은 상태입니다.' });
+    }
+    const numIds = ids.map(id => parseInt(id, 10)).filter(id => !isNaN(id));
+    if (!numIds.length) {
+      return res.status(400).json({ success: false, message: '유효한 ID가 없습니다.' });
+    }
+    const placeholders = numIds.map(() => '?').join(',');
+    await db.prepare(`
+      UPDATE outsourcing SET status = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id IN (${placeholders})
+    `).bind(status, ...numIds).run();
+
+    res.json({ success: true, message: `${numIds.length}건이 ${status}(으)로 변경되었습니다.` });
+  } catch (err) {
+    console.error('외주 일괄 상태 변경 오류:', err);
     res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
   }
 });
@@ -120,7 +200,7 @@ router.patch('/:id', authMiddleware, adminOnly, async (req, res) => {
         (phone || '').trim() || null,
         (manager || '').trim() || null,
         price,
-        (status && STATUSES.includes(status)) ? status : '진행중',
+        (status && STATUSES.includes(status)) ? status : '제작완료',
         (memo || '').trim() || null,
         req.params.id
       ).run();

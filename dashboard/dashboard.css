@@ -1260,6 +1260,42 @@ body {
 .status-badge.진행중 { background: rgba(34,197,94,0.12); color: #16a34a; }
 .status-badge.완료됨 { background: rgba(59,130,246,0.12); color: #2563eb; }
 .status-badge.대기중 { background: rgba(234,179,8,0.12); color: #ca8a04; }
+.status-badge.제작완료 { background: rgba(59,130,246,0.12); color: #2563eb; }
+.status-badge.정산완료 { background: rgba(107,114,128,0.15); color: #6b7280; }
+.status-badge.blog-status-draft { background: rgba(234,179,8,0.12); color: #ca8a04; }
+.status-badge.blog-status-published { background: rgba(34,197,94,0.12); color: #16a34a; }
+
+.blog-modal { max-width: 720px; width: 95%; }
+.blog-content-input { min-height: 200px; resize: vertical; font-family: inherit; line-height: 1.6; }
+.blog-title-cell { max-width: 280px; }
+.blog-slug-cell { max-width: 180px; font-size: 12px; }
+
+/* 외주 일괄 선택 바 */
+.out-bulk-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  background: rgba(59,130,246,0.08);
+  border: 1px solid rgba(59,130,246,0.25);
+  border-radius: 8px;
+}
+.out-bulk-count {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-right: 4px;
+}
+.project-table .col-check {
+  width: 40px;
+  text-align: center;
+}
+.project-table .col-check input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
 
 .urgent-badge {
   display: inline-block;
@@ -3747,4 +3783,262 @@ select.form-control {
   flex-shrink: 0;
 }
 .wr-attach-cancel:hover { color: #e53e3e; background: rgba(229,62,62,0.08); }
+
+/* ===== 계약서 관리 ===== */
+#contractMgmtPage { width: 100%; }
+
+/* 에디터 헤더 */
+.cd-editor-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 0 18px;
+  border-bottom: 1px solid var(--border-light);
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.cd-editor-header .page-title { margin: 0; flex: 1; }
+.cd-editor-actions { display: flex; gap: 8px; align-items: center; }
+
+/* 에디터 바디 (2패널) */
+.cd-editor-body {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+@media (max-width: 1100px) {
+  .cd-editor-body { grid-template-columns: 1fr; }
+}
+
+/* 폼 패널 */
+.cd-form-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.cd-form-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.cd-form-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* 미리보기 패널 */
+.cd-preview-panel { position: sticky; top: 20px; }
+.cd-preview-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 10px;
+}
+.cd-preview-wrap {
+  background: #e8e8e8;
+  border-radius: 10px;
+  padding: 20px;
+  overflow: auto;
+  max-height: calc(100vh - 180px);
+}
+
+/* ── 계약서 문서 ── */
+.cd-document {
+  background: #ffffff;
+  color: #1a1a1a;
+  font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+  font-size: 13px;
+  line-height: 1.8;
+  padding: 48px 52px;
+  min-width: 620px;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.12);
+  border-radius: 2px;
+}
+.cd-doc-title {
+  font-size: 22px;
+  font-weight: 900;
+  text-align: center;
+  letter-spacing: 0.25em;
+  margin-bottom: 28px;
+  border-bottom: 2.5px solid #1a1a1a;
+  padding-bottom: 14px;
+  color: #000;
+}
+.cd-parties-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 22px;
+  font-size: 12px;
+}
+.cd-parties-table th {
+  background: #f0f0f0;
+  border: 1px solid #bbb;
+  padding: 7px 10px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+}
+.cd-parties-table td {
+  border: 1px solid #bbb;
+  padding: 6px 10px;
+  vertical-align: top;
+}
+.cd-field-label {
+  background: #f8f8f8;
+  font-weight: 600;
+  white-space: nowrap;
+  width: 72px;
+  color: #444;
+}
+.cd-doc-intro {
+  margin: 0 0 20px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+.cd-article { margin-bottom: 16px; }
+.cd-article-title {
+  font-weight: 700;
+  font-size: 13px;
+  margin-bottom: 4px;
+  color: #111;
+}
+.cd-article-body {
+  margin: 0;
+  padding-left: 16px;
+  color: #333;
+  white-space: pre-wrap;
+  word-break: keep-all;
+}
+.cd-highlight { font-weight: 700; text-decoration: underline; }
+.cd-doc-closing {
+  margin: 22px 0 14px;
+  font-size: 12px;
+  text-align: center;
+  color: #555;
+}
+.cd-contract-date {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 28px;
+  letter-spacing: 0.08em;
+}
+.cd-sig-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 10px;
+}
+.cd-sig-block {
+  border: 1px solid #ccc;
+  padding: 14px 16px;
+  border-radius: 4px;
+  position: relative;
+}
+.cd-sig-title {
+  font-weight: 800;
+  font-size: 13px;
+  text-align: center;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #ddd;
+  letter-spacing: 0.05em;
+}
+.cd-sig-line {
+  font-size: 12px;
+  margin-bottom: 4px;
+  color: #333;
+}
+.cd-sig-stamp {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+.cd-stamp-img {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  opacity: 0.85;
+}
+
+/* ===== 블로그 관리 ===== */
+.blog-table th, .blog-table td { vertical-align: middle; }
+
+.blog-plan-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.blog-plan-badge.plan12 { background: rgba(59,130,246,0.12); color: #2563eb; }
+.blog-plan-badge.plan24 { background: rgba(168,85,247,0.12); color: #7c3aed; }
+
+.blog-days-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.blog-days-badge.overdue { background: rgba(239,68,68,0.15); color: #dc2626; }
+.blog-days-badge.today   { background: rgba(239,68,68,0.15); color: #dc2626; }
+.blog-days-badge.urgent  { background: rgba(249,115,22,0.15); color: #ea580c; }
+.blog-days-badge.soon    { background: rgba(234,179,8,0.12);  color: #ca8a04; }
+.blog-days-badge.safe    { background: rgba(34,197,94,0.12);  color: #16a34a; }
+
+.blog-url-link {
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 12px;
+  max-width: 160px;
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.blog-url-link:hover { text-decoration: underline; }
+
+.blog-modal { max-width: 600px; width: 95%; }
+
+.blog-pw-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.blog-pw-wrap .form-control { flex: 1; }
+.blog-pw-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  font-size: 18px;
+}
+.blog-pw-toggle:hover { color: var(--accent); border-color: var(--accent); }
 
