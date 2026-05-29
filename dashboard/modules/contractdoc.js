@@ -7,30 +7,35 @@ let editingId = null;
 const AEROC_DEFAULTS_KEY = 'AEROC_contract_defaults';
 
 const DEFAULT_CONTRACT_BODY =
-`제1조 (계약의 목적)
-본 계약은 수급인(이하 "을")이 위탁자(이하 "갑")의 홈페이지를 제작함에 있어 쌍방의 권리와 의무를 명확히 하고 이를 성실히 이행함을 목적으로 한다.
+`제1조 (목적)
+본 계약은 주식회사 ○○○○(이하 "공급사")와 ○○○○(이하 "고객사") 간의 홈페이지 제작, 프로그램 개발 및 서버 세팅(이하 "본 건 작업")에 관한 조건과 절차를 규정하고, 상호 신뢰를 바탕으로 계약 사항을 성실히 이행하는 것을 목적으로 한다.
 
-제2조 (제작 범위)
-① 을은 갑에게 본 계약에 명시된 홈페이지를 제작·납품한다.
-② 제작 범위 및 세부 사항은 별도 제안서 또는 기획안에 따른다.
+제2조 (작업 범위 및 포털 사이트 상위노출에 대한 면책)
 
-제3조 (계약 금액 및 결제)
-① 본 계약의 총 금액은 계약서에 명시된 금액으로 한다.
-② 계약금은 계약 체결 시 총 금액의 50%를 납부하며, 잔금은 홈페이지 오픈 전 납부를 원칙으로 한다.
+"공급사"는 "고객사"가 요청한 기획, 프로그램 개발, 디자인 및 서버 세팅을 수행하며, 작업 완료 후 네이버 및 구글 등 주요 포털 사이트에 사이트 등록을 진행한다.
 
-제4조 (저작권)
-① 제작 완료된 홈페이지의 저작권은 잔금 완납 시점부터 갑에게 귀속된다.
-② 을은 포트폴리오 목적으로 해당 홈페이지를 활용할 수 있다.
+[검색포털 상위노출 관련 면책 조항] "공급사"는 최신의 SEO(검색엔진 최적화) 가이드에 맞추어 홈페이지를 제작하고 상위노출이 가능하도록 기술적 조치를 취할 수 있으나, 주요 포털 사이트(네이버, 구글 등)의 검색 노출 순위는 각 포털 사의 고유 알고리즘 및 외부 시장 환경에 의해 결정된다. 따라서 "공급사"는 상위노출 가능성을 제고할 뿐, 특정 키워드의 상위노출을 무조건적으로 보장하거나 확약하지 않으며, 상위노출 여부 및 순위 변동을 이유로 한 환불이나 손해배상 청구는 일체 불가하다.
 
-제5조 (하자보수)
-① 홈페이지 오픈 후 30일 이내에 발생한 하자에 대해 을은 무상으로 보수한다.
-② 단, 갑의 임의 수정으로 인한 오류 및 하자는 적용되지 않는다.
+제3조 (계약 해지 및 단계별 위약금)
+본 건 작업은 계약 체결 즉시 기획 프로세스가 가동되고 프로그램 및 서버 세팅 자원이 즉각 투입되는 도급 작업의 특성을 가진다. 이에 따라 계약 등록 이후 "고객사"의 단순 변심 또는 일방적인 취소 요청 시, 작업 진행 단계에 따라 다음과 같이 위약금이 발생하며 "고객사"는 이를 전액 부담한다.
 
-제6조 (계약 해제)
-쌍방 합의 없이 일방적으로 계약을 해제할 경우, 귀책사유가 있는 자는 상대방에게 계약금액의 30%에 해당하는 위약금을 지급한다.
+[1단계 : 계약 등록 후 단순 변심 및 취소 요청]
+계약 체결 및 등록 완료 후 "고객사"의 단순 변심이나 사정으로 취소를 요청할 경우, 기획 및 프로그램 서버 세팅이 즉시 진행되므로 최소 총 제작비의 30% 이상의 위약금이 발생한다.
 
-제7조 (기타)
-본 계약에 명시되지 않은 사항은 민법 및 상관례에 따른다.`;
+[2단계 : 디자인 시안 도출 후 취소 요청]
+기획 및 프로그램 서버 세팅이 완료된 후, 디자인 시안(메인 및 서브 화면 등 포함)이 1회 이상 제공된 상태에서 "고객사"가 취소를 요청할 경우, 총 제작비의 80% 이상의 위약금이 발생한다.
+
+[3단계 : 사이트 등록 완료 후 취소 불가의 원칙]
+"공급사"가 최종 결과물에 대하여 네이버 또는 구글 등 포털 사이트에 사이트 등록 접수 및 완료 처리를 진행한 이후에는 작업을 기성 완료한 것으로 간주하여 계약 취소 및 환불이 절대 불가능하다.
+
+제4조 (위약금의 정산 및 청구)
+
+제3조에 따른 위약금 발생 시, "고객사"가 기지급한 선금(계약금)이 있을 경우 위약금 조로 "공급사"에 당연 귀속되며, 선금이 위약금 총액에 미달할 경우 "고객사"는 "공급사"의 청구일로부터 7일 이내에 잔여 위약금을 현금으로 추가 지급하여야 한다.
+
+"고객사"의 귀책사유나 자료 제공 지연 등으로 인해 작업이 30일 이상 중단될 경우에도 "공급사"는 계약을 해지하고 본 조 및 제3조에 따른 위약금을 청구할 수 있다.
+
+제5조 (기타 사항)
+본 계약서에 명시되지 않은 사항은 상법 및 일반 상관례에 따르며, 본 계약과 관련하여 분쟁이 발생할 경우 "공급사"의 본점 소재지 관할 법원을 합의 관할 법원으로 한다.`;
 
 function esc(s) {
   return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -88,9 +93,11 @@ function updatePreview() {
   set('cdPvAmount',       fmtMoney(amount));
 
   // 서명 블록
-  set('cdSigClientName', clientName);
-  set('cdSigClientRep',  clientRep);
-  set('cdSigAerocRep',   aerocRep);
+  set('cdSigClientName',    clientName);
+  set('cdSigClientRep',     clientRep);
+  set('cdSigClientAddress', clientAddr);
+  set('cdSigAerocRep',      aerocRep);
+  set('cdSigAerocAddress',  get('cdAerocAddress'));
 
   // 홈페이지 유형 체크박스
   const chkAdv   = document.getElementById('cdPvChkAdv');
@@ -151,7 +158,7 @@ function showEditorView(doc = null) {
   const defaults = JSON.parse(localStorage.getItem(AEROC_DEFAULTS_KEY) || '{}');
 
   // 폼 초기화
-  document.getElementById('cdContractTitle').value = '홈페이지 제작 계약서';
+    document.getElementById('cdContractTitle').value = '홈페이지 제작 및 시스템 구축 표준 계약서';
   ['cdClientName','cdClientRep','cdClientPhone','cdClientBizNo','cdClientIdNo','cdClientAddress',
    'cdAmount','cdStartDate','cdEndDate','cdSpecialTerms','cdContractDate'].forEach(id => {
     const el = document.getElementById(id);
@@ -170,7 +177,7 @@ function showEditorView(doc = null) {
     titleEl.textContent = `계약서 수정 — ${doc.contract_no}`;
     delBtn.style.display = 'inline-flex';
 
-    document.getElementById('cdContractTitle').value  = doc.contract_title   || '홈페이지 제작 계약서';
+    document.getElementById('cdContractTitle').value  = doc.contract_title   || '홈페이지 제작 및 시스템 구축 표준 계약서';
     document.getElementById('cdClientName').value     = doc.client_name      || '';
     document.getElementById('cdClientRep').value      = doc.client_rep       || '';
     document.getElementById('cdClientPhone').value    = doc.client_phone     || '';
