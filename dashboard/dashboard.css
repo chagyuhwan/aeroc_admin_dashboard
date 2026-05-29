@@ -4039,8 +4039,10 @@ select.form-control {
   font-weight: 700;
   white-space: nowrap;
   text-align: center;
-  width: 90px;
+  width: 15%;
+  font-size: 11px;
   color: #333;
+  letter-spacing: -0.02em;
 }
 
 /* 홈페이지 유형 선택 표시 (문서) */

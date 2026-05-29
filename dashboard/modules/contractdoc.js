@@ -41,6 +41,49 @@ function esc(s) {
   return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+// ── 자동 하이픈 포맷터 ────────────────────────────────
+function formatPhone(val) {
+  const d = val.replace(/\D/g, '').slice(0, 11);
+  if (d.startsWith('02')) {
+    if (d.length <= 2) return d;
+    if (d.length <= 5) return `${d.slice(0,2)}-${d.slice(2)}`;
+    if (d.length <= 9) return `${d.slice(0,2)}-${d.slice(2,5)}-${d.slice(5)}`;
+    return `${d.slice(0,2)}-${d.slice(2,6)}-${d.slice(6)}`;
+  }
+  if (d.length <= 3) return d;
+  if (d.length <= 7) return `${d.slice(0,3)}-${d.slice(3)}`;
+  return `${d.slice(0,3)}-${d.slice(3,7)}-${d.slice(7)}`;
+}
+
+function formatBizNo(val) {
+  const d = val.replace(/\D/g, '').slice(0, 10);
+  if (d.length <= 3) return d;
+  if (d.length <= 5) return `${d.slice(0,3)}-${d.slice(3)}`;
+  return `${d.slice(0,3)}-${d.slice(3,5)}-${d.slice(5)}`;
+}
+
+function formatResidentNo(val) {
+  const d = val.replace(/\D/g, '').slice(0, 13);
+  if (d.length <= 6) return d;
+  return `${d.slice(0,6)}-${d.slice(6)}`;
+}
+
+function applyAutoFormat(inputEl, formatter) {
+  inputEl.addEventListener('input', () => {
+    const pos = inputEl.selectionStart;
+    const raw = inputEl.value;
+    const formatted = formatter(raw);
+    if (formatted !== raw) {
+      // 커서 위치 보정 (하이픈 추가로 인한 이동)
+      const diff = formatted.length - raw.length;
+      inputEl.value = formatted;
+      const newPos = Math.max(0, pos + diff);
+      inputEl.setSelectionRange(newPos, newPos);
+    }
+    updatePreview();
+  });
+}
+
 function fmtMoney(n) {
   const v = parseInt(n) || 0;
   return v > 0 ? '₩' + v.toLocaleString('ko-KR') : '';
@@ -382,14 +425,23 @@ export function initContractDoc(authToken) {
   });
 
   // 실시간 미리보기
+  // cdClientPhone, cdClientBizNo, cdClientIdNo 는 applyAutoFormat에서 updatePreview 처리
   const liveFields = [
-    'cdContractTitle','cdClientName','cdClientRep','cdClientPhone',
-    'cdClientBizNo','cdClientIdNo','cdClientAddress',
+    'cdContractTitle','cdClientName','cdClientRep',
+    'cdClientAddress',
     'cdAerocRep','cdAerocBizNo','cdAerocAddress',
     'cdAmount','cdStartDate','cdEndDate',
     'cdContractBody','cdSpecialTerms','cdContractDate'
   ];
   liveFields.forEach(id => document.getElementById(id)?.addEventListener('input', updatePreview));
+
+  // 자동 하이픈 포맷팅
+  const phoneEl  = document.getElementById('cdClientPhone');
+  const bizNoEl  = document.getElementById('cdClientBizNo');
+  const idNoEl   = document.getElementById('cdClientIdNo');
+  if (phoneEl)  applyAutoFormat(phoneEl,  formatPhone);
+  if (bizNoEl)  applyAutoFormat(bizNoEl,  formatBizNo);
+  if (idNoEl)   applyAutoFormat(idNoEl,   formatResidentNo);
 
   // 라디오 버튼 변경 시 미리보기
   document.querySelectorAll('input[name="homepageType"]').forEach(r => {
